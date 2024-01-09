@@ -1,5 +1,5 @@
 .whats-new-rss-trigger-button {
-	border: 1px solid;
+    border: 1px solid;
     padding: 5px;
     align-items: center;
     display: flex;
@@ -8,6 +8,87 @@
     cursor: pointer;
 }
 
-.whats-new-rss-flyout.hidden {
-	display: none;
+/* Styles for the drawer container */
+.whats-new-rss-flyout {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40%;
+    background: #fff;
+    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Styles for the drawer contents */
+.whats-new-rss-flyout-contents {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    position: relative;
+}
+
+/* Styles for the header of the drawer */
+.whats-new-rss-flyout-inner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 30px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Styles for the close button in the header */
+.whats-new-rss-flyout-inner-header button {
+    background: none;
+    border: none;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+/* Styles for the content inside the drawer */
+.whats-new-rss-flyout-inner-content {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #ffffff;
+}
+
+.whats-new-rss-flyout-inner-content-item {
+    border-bottom: 1px solid;
+    padding: 15px 30px;
+}
+
+.whats-new-rss-flyout-inner-content-item img {
+    width: 400px;
+    height: 240px;
+}
+
+.whats-new-rss-flyout-inner-content-item video {
+    width: 400px;
+    height: 240px;
+}
+
+
+/* Styles for the overlay shadow */
+.whats-new-rss-flyout-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+    /* Adjust overlay color and opacity as needed */
+    z-index: 999;
+    display: none;
+}
+
+/* Show the overlay when the drawer is open */
+.whats-new-rss-flyout.open .whats-new-rss-flyout-overlay {
+    display: block;
+}
+
+/* Translate the drawer off-screen when closed */
+.whats-new-rss-flyout.closed {
+    transform: translateX(100%);
 }

@@ -132,23 +132,37 @@ class WhatsNewRSS {
 		const triggerButton = document.getElementById(this.RSS_View_Instance.getTriggerButtonID());
 		const flyout = document.getElementById(this.RSS_View_Instance.getFlyoutID());
 		const flyoutInner = flyout.querySelector('.whats-new-rss-flyout-inner-content');
+		const flyoutCloseBtn = document.getElementById(this.RSS_View_Instance.getFlyoutCloseBtnID());
 
 		triggerButton.addEventListener("click", (e) => {
 			e.preventDefault();
 
-			flyout.classList.remove('hidden');
+			flyout.classList.remove('closed');
+			flyout.classList.add('open');
 
 			this.args.triggerButton.onClick(e, this);
 
+			this.RSS_View_Instance.setLoadingStatus(true);
+
 			this.RSS_Fetch_Instance.fetchData()
 				.then((data) => {
-					flyoutInner.innerHTML = data;
+					data.forEach((item) => {
+						flyoutInner.innerHTML += `
+						<div class="whats-new-rss-flyout-inner-content-item">
+							<h2>${item.title}</h2>
+							<p>${item.description}</p>
+						</div>
+						`;
+					});
+
+					this.RSS_View_Instance.setLoadingStatus(false);
 				});
 		});
 
-		document.getElementById(this.RSS_View_Instance.getFlyoutCloseBtnID())
-		.addEventListener('click', ()=>{
-			flyout.classList.add('hidden');
+		flyoutCloseBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			flyout.classList.add('closed');
+			flyout.classList.remove('open');
 		});
 	}
 
@@ -160,7 +174,7 @@ class WhatsNewRSSFetch {
 
 	private response: Response;
 
-	private data: string;
+	private data = [];
 
 	constructor(RSS: WhatsNewRSS) {
 		this.rssFeedURL = RSS.getArgs().rssFeedURL;
@@ -168,12 +182,26 @@ class WhatsNewRSSFetch {
 
 	public async fetchData() {
 
-		if (this.data) {
+		if (this.data.length) {
 			return this.data;
 		}
 
-		this.response = await fetch(this.rssFeedURL)
-		this.data = await this.response.text();
+		this.response = await fetch(this.rssFeedURL);
+
+		const data = await this.response.text();
+
+		const _div = document.createElement('div');
+
+		_div.innerHTML = data;
+
+		const items = _div.querySelectorAll('item');
+
+		items.forEach((item) => {
+			this.data.push({
+				title: item.querySelector('title').innerHTML,
+				description: item.querySelector('content\\:encoded').innerHTML.replace(/<!--[\s\S]*?-->/g, ''),
+			});
+		});
 
 		return this.data;
 	}
@@ -203,6 +231,14 @@ class WhatsNewRSSView {
 		return `whats-new-rss-flyout-close-${this.RSS.getID()}`;
 	}
 
+	public setLoadingStatus(isLoading = false) {
+		if (isLoading) {
+			document.getElementById(this.getFlyoutID()).classList.add('is-loading');
+		} else {
+			document.getElementById(this.getFlyoutID()).classList.remove('is-loading');
+		}
+	}
+
 	private createTriggerButton() {
 
 		let button = `<a class="whats-new-rss-trigger-button" id="${this.getTriggerButtonID()}">${this.RSS.getArgs().triggerButton.icon}</a>`;
@@ -214,13 +250,12 @@ class WhatsNewRSSView {
 
 		const wrapperClasses = [
 			'whats-new-rss-flyout',
-			'hidden',
+			'closed',
 			this.RSS.getArgs().flyout.className
 		];
 
 		let flyout = `
 		<div class="${wrapperClasses.join(' ')}" id="${this.getFlyoutID()}">
-			<div class="whats-new-rss-flyout-overlay"></div>
 
 			<div class="whats-new-rss-flyout-contents">
 
@@ -230,10 +265,11 @@ class WhatsNewRSSView {
 					<button type="button" id="${this.getFlyoutCloseBtnID()}">&times;</button>
 				</div>
 
-				<div class="whats-new-rss-flyout-inner-content">
-				</div>
+				<div class="whats-new-rss-flyout-inner-content"></div>
 
 			</div>
+
+			<div class="whats-new-rss-flyout-overlay"></div>
 		</div>
 		`;
 
