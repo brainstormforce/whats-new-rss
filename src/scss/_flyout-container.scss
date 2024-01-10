@@ -1,0 +1,89 @@
+.whats-new-rss-flyout {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 30%;
+	background: #fff;
+	box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
+	transition: transform 0.3s ease-in-out;
+
+	.whats-new-rss-flyout-inner-header__loading-icon {
+		display: none;
+	}
+
+	&.is-loading .whats-new-rss-flyout-inner-header__loading-icon {
+		display: block;
+		margin: auto;
+
+		svg {
+			display: block;
+			background: transparent;
+			width: 25px;
+			height: 25px;
+		}
+	}
+
+	.whats-new-rss-flyout-contents {
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		position: relative;
+		background-color: #ffffff;
+		z-index: 9999;
+
+		.whats-new-rss-flyout-inner-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 5px 30px;
+			background-color: #f0f0f0;
+			border-bottom: 1px solid #ccc;
+
+			button {
+				background: none;
+				border: none;
+				font-size: 30px;
+				cursor: pointer;
+			}
+
+			.whats-new-rss-flyout-inner-header__title-icon-wrapper {
+				display: flex;
+				gap: 10px;
+			}
+
+		}
+
+		.whats-new-rss-flyout-inner-content {
+			flex: 1;
+			overflow-y: auto;
+
+			.whats-new-rss-flyout-inner-content-item {
+				border-bottom: 1px solid;
+				padding: 15px 30px;
+
+				img:not(.wp-smiley),
+				video {
+					width: 400px;
+					height: 240px;
+				}
+			}
+		}
+
+	}
+
+	.whats-new-rss-flyout-overlay {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background: rgba(0, 0, 0, 0.5);
+		z-index: 999;
+	}
+
+	&.closed {
+		transform: translateX(100%);
+	}
+
+}
