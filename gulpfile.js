@@ -27,5 +27,5 @@ function handleUglifyJS() {
 
 gulp.task('sass', handleScssBuild);
 gulp.task('sass:minify', handleMinifyCSS);
-gulp.task('sass:watch', () => gulp.watch("src/scss/**/*.scss", handleMinifyCSS));
+gulp.task('sass:watch', () => gulp.watch("src/scss/**/*.scss", handleScssBuild));
 gulp.task('uglify', handleUglifyJS);

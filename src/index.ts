@@ -15,6 +15,7 @@ type ConstructorArgs = Required<RequiredArgs> & {
 	flyout: {
 		title: string,
 		className: string,
+		closeBtnIcon: string,
 		closeOnEsc: boolean,
 		closeOnOverlayClick: boolean,
 		onOpen: Function,
@@ -43,6 +44,7 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 		className: '',
 		closeOnEsc: true,
 		closeOnOverlayClick: true,
+		closeBtnIcon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 18L18 6M6 6L18 18" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 		onOpen: () => { },
 		onClose: () => { },
 		onReady: () => { }
@@ -230,7 +232,7 @@ class WhatsNewRSSFetch {
 
 		const _div = document.createElement('div');
 
-		_div.innerHTML = data;
+		_div.innerHTML = data.replace(/\s*]]>\s*/g, '');
 
 		const items = _div.querySelectorAll('item');
 
@@ -317,7 +319,7 @@ class WhatsNewRSSView {
 						</span>
 					</div>
 
-					<button type="button" id="${this.getFlyoutCloseBtnID()}">&times;</button>
+					<button type="button" id="${this.getFlyoutCloseBtnID()}">${this.RSS.getArgs().flyout.closeBtnIcon}</button>
 				</div>
 
 				<div class="whats-new-rss-flyout-inner-content"></div>

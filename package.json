@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && tsc --sourceMap false && gulp sass:minify && gulp uglify",
-    "start": "tsc --watch | gulp sass:watch"
+    "start": "gulp sass:watch | tsc --watch"
   },
   "devDependencies": {
     "gulp": "^4.0.2",
