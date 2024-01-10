@@ -155,6 +155,7 @@ class WhatsNewRSS {
 
 			flyout.classList.remove('closed');
 			flyout.classList.add('open');
+			document.body.classList.add('whats-new-rss-is-active');
 
 			this.getArgs().flyout.onOpen(this);
 
@@ -164,7 +165,7 @@ class WhatsNewRSS {
 						flyoutInner.innerHTML += `
 						<div class="whats-new-rss-flyout-inner-content-item">
 							<h2>${item.title}</h2>
-							<p>${item.description}</p>
+							${item.description}
 						</div>
 						`;
 					});
@@ -180,6 +181,7 @@ class WhatsNewRSS {
 		const handleFlyoutClose = () => {
 			flyout.classList.add('closed');
 			flyout.classList.remove('open');
+			document.body.classList.remove('whats-new-rss-is-active');
 
 			flyoutInner.innerHTML = '';
 
@@ -235,7 +237,7 @@ class WhatsNewRSSFetch {
 		items.forEach((item) => {
 			this.data.push({
 				title: item.querySelector('title').innerHTML,
-				description: item.querySelector('content\\:encoded').innerHTML.replace(/<!--[\s\S]*?-->/g, ''),
+				description: item.querySelector('content\\:encoded').innerHTML,
 			});
 		});
 
