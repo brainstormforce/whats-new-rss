@@ -14,9 +14,11 @@ type ConstructorArgs = Required<RequiredArgs> & {
 	flyout: {
 		title: string,
 		className: string,
+		closeOnEsc: boolean,
+		closeOnOverlayClick: boolean,
 		onOpen: Function,
 		onClose: Function,
-		afterFetch: Function,
+		onReady: Function,
 	}
 }
 
@@ -37,9 +39,11 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 	flyout: {
 		title: "What's New?",
 		className: '',
+		closeOnEsc: true,
+		closeOnOverlayClick: true,
 		onOpen: () => { },
 		onClose: () => { },
-		afterFetch: () => { }
+		onReady: () => { }
 	}
 }
 
@@ -82,7 +86,7 @@ class WhatsNewRSS {
 		this.RSS_Fetch_Instance = new WhatsNewRSSFetch(this);
 		this.RSS_View_Instance = new WhatsNewRSSView(this);
 
-		this.setTrigger();
+		this.setTriggers();
 	}
 
 	/**
@@ -133,7 +137,7 @@ class WhatsNewRSS {
 		return this.ID;
 	}
 
-	private setTrigger() {
+	private setTriggers() {
 
 		const triggerButton = document.getElementById(this.RSS_View_Instance.getTriggerButtonID());
 		const flyout = document.getElementById(this.RSS_View_Instance.getFlyoutID());
@@ -143,12 +147,14 @@ class WhatsNewRSS {
 		triggerButton.addEventListener("click", (e) => {
 			e.preventDefault();
 
-			this.args.triggerButton.onClick(e, this);
+			this.getArgs().triggerButton.onClick(this);
 
 			this.RSS_View_Instance.setIsLoading(true);
 
 			flyout.classList.remove('closed');
 			flyout.classList.add('open');
+
+			this.getArgs().flyout.onOpen(this);
 
 			this.RSS_Fetch_Instance.fetchData()
 				.then((data) => {
@@ -164,20 +170,36 @@ class WhatsNewRSS {
 					this.RSS_View_Instance.setIsLoading(false);
 
 					flyout.focus();
+
+					this.getArgs().flyout.onReady(this);
 				});
 		});
 
-		flyoutCloseBtn.addEventListener('click', (e) => {
-			e.preventDefault();
+		const handleFlyoutClose = () => {
 			flyout.classList.add('closed');
 			flyout.classList.remove('open');
 
 			flyoutInner.innerHTML = '';
 
-			flyout.blur();
-		});
-	}
+			triggerButton.focus();
 
+			this.getArgs().flyout.onClose(this);
+		}
+
+		if (this.getArgs().flyout.closeOnEsc) {
+			document.addEventListener('keydown', function (e) {
+				if ('Escape' !== e.key) return;
+				if (!flyout.classList.contains('open')) return;
+				handleFlyoutClose();
+			});
+		}
+
+		if (this.getArgs().flyout.closeOnOverlayClick) {
+			flyout.querySelector('.whats-new-rss-flyout-overlay').addEventListener('click', handleFlyoutClose);
+		}
+
+		flyoutCloseBtn.addEventListener('click', handleFlyoutClose);
+	}
 }
 
 class WhatsNewRSSFetch {
@@ -266,8 +288,11 @@ class WhatsNewRSSView {
 		const wrapperClasses = [
 			'whats-new-rss-flyout',
 			'closed',
-			this.RSS.getArgs().flyout.className
 		];
+
+		if (this.RSS.getArgs().flyout.className) {
+			wrapperClasses.push(this.RSS.getArgs().flyout.className);
+		}
 
 		let flyout = `
 		<div class="${wrapperClasses.join(' ')}" id="${this.getFlyoutID()}" role="dialog">
