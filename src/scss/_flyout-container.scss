@@ -7,6 +7,7 @@
 	background: #fff;
 	box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
 	transition: transform 0.3s ease-in-out;
+	z-index: 9999;
 
 	.whats-new-rss-flyout-inner-header__loading-icon {
 		display: none;
@@ -62,10 +63,16 @@
 				border-bottom: 1px solid;
 				padding: 15px 30px;
 
-				img:not(.wp-smiley),
+				img:not(.wp-smiley) {
+					box-sizing: border-box;
+					height: auto;
+					max-width: 100%;
+					vertical-align: bottom;
+				}
+
 				video {
-					width: 400px;
-					height: 240px;
+					vertical-align: middle;
+					width: 100%;
 				}
 			}
 		}
