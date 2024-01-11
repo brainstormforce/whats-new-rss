@@ -7,16 +7,24 @@
     cursor: pointer;
 
     .whats-new-rss-notification-badge {
-        background: #ff0000;
+        background: red;
         width: 8px;
         height: 8px;
         border-radius: 10px;
         position: absolute;
         top: 0;
         right: 0;
+        transition: transform 0.2s ease-in-out;
 
         &.hide {
             display: none;
         }
     }
+
+    &:hover {
+        .whats-new-rss-notification-badge {
+            transform: scale(1.2);
+        }
+    }
+
 }

@@ -5,7 +5,10 @@ type RequiredArgs = {
 
 type ConstructorArgs = Required<RequiredArgs> & {
 	loaderIcon?: string,
-	readMoreLink?: string,
+	viewAll?: {
+		link: string,
+		label?: string,
+	},
 	triggerButton?: {
 		icon?: string,
 		beforeBtn?: string,
@@ -33,7 +36,10 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 		<animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform>
 	</circle>
 	</svg>`,
-	readMoreLink: '',
+	viewAll: {
+		link: '',
+		label: 'View All',
+	},
 	triggerButton: {
 		icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.61703 13.1998C8.04294 13.1503 7.46192 13.125 6.875 13.125H6.25C4.17893 13.125 2.5 11.4461 2.5 9.375C2.5 7.30393 4.17893 5.625 6.25 5.625H6.875C7.46192 5.625 8.04294 5.59972 8.61703 5.55018M8.61703 13.1998C8.82774 14.0012 9.1031 14.7764 9.43719 15.5195C9.64341 15.9782 9.48685 16.5273 9.05134 16.7787L8.50441 17.0945C8.04492 17.3598 7.45466 17.1921 7.23201 16.7106C6.70983 15.5811 6.30451 14.3866 6.03155 13.1425M8.61703 13.1998C8.29598 11.9787 8.125 10.6968 8.125 9.375C8.125 8.05316 8.29598 6.77125 8.61703 5.55018M8.61703 13.1998C11.25 13.427 13.737 14.1643 15.9789 15.3124M8.61703 5.55018C11.25 5.323 13.737 4.58569 15.9789 3.43757M15.9789 3.43757C15.8808 3.12162 15.7751 2.80903 15.662 2.5M15.9789 3.43757C16.4247 4.87356 16.7131 6.37885 16.8238 7.93326M15.9789 15.3124C15.8808 15.6284 15.7751 15.941 15.662 16.25M15.9789 15.3124C16.4247 13.8764 16.7131 12.3711 16.8238 10.8167M16.8238 7.93326C17.237 8.2772 17.5 8.79539 17.5 9.375C17.5 9.95461 17.237 10.4728 16.8238 10.8167M16.8238 7.93326C16.8578 8.40942 16.875 8.8902 16.875 9.375C16.875 9.8598 16.8578 10.3406 16.8238 10.8167" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 		beforeBtn: '',
@@ -113,6 +119,10 @@ class WhatsNewRSS {
 		this.args = {
 			...WhatsNewRSSDefaultArgs,
 			...args,
+			viewAll: {
+				...WhatsNewRSSDefaultArgs.viewAll,
+				...args.viewAll,
+			},
 			triggerButton: {
 				...WhatsNewRSSDefaultArgs.triggerButton,
 				...args.triggerButton,
@@ -146,9 +156,7 @@ class WhatsNewRSS {
 
 	private handleNotificationBadge() {
 
-		const key = 'whats-new-rss-lastLatestPost';
-
-		const lastLatestPost = +window.localStorage.getItem(key);
+		const lastLatestPost = +window.localStorage.getItem('whats-new-rss-lastLatestPost');
 
 		this.RSS_Fetch_Instance.fetchData()
 			.then((data) => {
@@ -161,8 +169,6 @@ class WhatsNewRSS {
 				if (latestPostDate > lastLatestPost) {
 					this.RSS_View_Instance.setNotification(true);
 				}
-
-				window.localStorage.setItem(key, latestPostDate.toString());
 			});
 
 	}
@@ -189,6 +195,9 @@ class WhatsNewRSS {
 
 			this.RSS_Fetch_Instance.fetchData()
 				.then((data) => {
+
+					window.localStorage.setItem('whats-new-rss-lastLatestPost', data[0].date);
+
 					flyoutInner.innerHTML = '';
 
 					data.forEach((item) => {
@@ -203,12 +212,19 @@ class WhatsNewRSS {
 						);
 					});
 
-					flyout.classList.add('ready');
+					if (this.getArgs().viewAll.link) {
+						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
+							`
+							<a href="${this.getArgs().viewAll.link}" class="button view-all">${this.getArgs().viewAll.label}</a>
+							`
+						)
+					}
 
 					this.RSS_View_Instance.setIsLoading(false);
 
 					flyout.focus();
 
+					flyout.classList.add('ready');
 					this.getArgs().flyout.onReady(this);
 				});
 		});
@@ -253,6 +269,12 @@ class WhatsNewRSSFetch {
 
 	constructor(RSS: WhatsNewRSS) {
 		this.rssFeedURL = RSS.getArgs().rssFeedURL;
+
+		const sessionCache = JSON.parse(window.sessionStorage.getItem('whats-new-rss-session-cache'));
+
+		if (sessionCache && sessionCache.length) {
+			this.data = sessionCache;
+		}
 	}
 
 	public async fetchData() {
@@ -281,6 +303,8 @@ class WhatsNewRSSFetch {
 				description: item.querySelector('content\\:encoded').innerHTML,
 			});
 		});
+
+		window.sessionStorage.setItem('whats-new-rss-session-cache', JSON.stringify(this.data))
 
 		return this.data;
 	}
