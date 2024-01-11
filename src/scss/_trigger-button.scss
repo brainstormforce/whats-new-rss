@@ -1,8 +1,22 @@
 .whats-new-rss-trigger-button {
-    padding: 5px;
-    align-items: center;
     display: flex;
+    align-items: center;
+    position: relative;
     width: auto;
-    background: #eee;
+    padding: 5px;
     cursor: pointer;
+
+    .whats-new-rss-notification-badge {
+        background: #ff0000;
+        width: 8px;
+        height: 8px;
+        border-radius: 10px;
+        position: absolute;
+        top: 0;
+        right: 0;
+
+        &.hide {
+            display: none;
+        }
+    }
 }
