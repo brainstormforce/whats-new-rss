@@ -115,6 +115,11 @@ class WhatsNewRSS {
 		});
 	}
 
+	/**
+	 * Parse the arguments passed by the user with the defaults.
+	 *
+	 * @param {ConstructorArgs} args
+	 */
 	private parseDefaults(args: ConstructorArgs) {
 		this.args = {
 			...WhatsNewRSSDefaultArgs,
@@ -134,27 +139,51 @@ class WhatsNewRSS {
 		};
 	}
 
-	public getArgs() {
+	/**
+	 * Returns parsed args.
+	 *
+	 * @returns {ConstructorArgs}
+	 */
+	public getArgs(): ConstructorArgs {
 		return this.args;
 	}
 
+	/**
+	 * Sets the HTML element queried using passed selector.
+	 */
 	private setElement() {
 		this.element = document.querySelector(this.args.selector);
 	}
 
-	public getElement() {
+	/**
+	 * Returns the html element according to the selector.
+	 *
+	 * @returns {HTMLElement}
+	 */
+	public getElement(): HTMLElement {
 		return this.element;
 	}
 
+	/**
+	 * Creates unique ID for current instance, that can be used by the library elements.
+	 */
 	private setID() {
-		this.ID = btoa(JSON.stringify(this)).replace(/=/g, '').slice(-12);
+		this.ID = btoa(`${this.getArgs().rssFeedURL}-${this.getArgs().selector}`).replace(/=/g, '').slice(-12);
 	}
 
-	public getID() {
+	/**
+	 * Returns the current instance unique ID.
+	 *
+	 * @returns {string}
+	 */
+	public getID(): string {
 		return this.ID;
 	}
 
-	private handleNotificationBadge() {
+	/**
+	 * Handles the hide/show of the notification badge of the trigger button.
+	 */
+	private handleNotificationBadge(): void {
 
 		const lastLatestPost = +window.localStorage.getItem('whats-new-rss-lastLatestPost');
 
@@ -173,6 +202,9 @@ class WhatsNewRSS {
 
 	}
 
+	/**
+	 * Sets the triggers for the library, eg: close, open, fetch.
+	 */
 	private setTriggers() {
 
 		const triggerButton = document.getElementById(this.RSS_View_Instance.getTriggerButtonID());
@@ -180,6 +212,10 @@ class WhatsNewRSS {
 		const flyoutInner = flyout.querySelector('.whats-new-rss-flyout-inner-content');
 		const flyoutCloseBtn = document.getElementById(this.RSS_View_Instance.getFlyoutCloseBtnID());
 
+		/**
+		 * Open flyout on trigger button click.
+		 * Flyout has three states: `closed | open | ready`
+		 */
 		triggerButton.addEventListener("click", (e) => {
 			e.preventDefault();
 
@@ -193,9 +229,13 @@ class WhatsNewRSS {
 
 			this.getArgs().flyout.onOpen(this);
 
+			/**
+			 * Fetch data on flyout open.
+			 */
 			this.RSS_Fetch_Instance.fetchData()
 				.then((data) => {
 
+					// Set the last latest post date for notification handling.
 					window.localStorage.setItem('whats-new-rss-lastLatestPost', data[0].date);
 
 					flyoutInner.innerHTML = '';
@@ -213,6 +253,7 @@ class WhatsNewRSS {
 					});
 
 					if (this.getArgs().viewAll.link) {
+						// If we have link provided for the view all button then append a view all button at the end of the contents.
 						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
 							`
 							<a href="${this.getArgs().viewAll.link}" class="button view-all">${this.getArgs().viewAll.label}</a>
@@ -222,13 +263,19 @@ class WhatsNewRSS {
 
 					this.RSS_View_Instance.setIsLoading(false);
 
-					flyout.focus();
-
 					flyout.classList.add('ready');
 					this.getArgs().flyout.onReady(this);
+
+					/**
+					 * Change focus to flyout on flyout ready.
+					 */
+					flyout.focus();
 				});
 		});
 
+		/**
+		 * Handle events for the closing of the flyout.
+		 */
 		const handleFlyoutClose = () => {
 			flyout.classList.add('closed');
 			flyout.classList.remove('open');
@@ -238,9 +285,12 @@ class WhatsNewRSS {
 
 			flyoutInner.innerHTML = '';
 
-			triggerButton.focus();
-
 			this.getArgs().flyout.onClose(this);
+
+			/**
+			 * Change focus back to trigger button after flyout close.
+			 */
+			triggerButton.focus();
 		}
 
 		if (this.getArgs().flyout.closeOnEsc) {
@@ -259,6 +309,10 @@ class WhatsNewRSS {
 	}
 }
 
+/**
+ * Class for handling the data fetching.
+ * It also handles the session caching of the fetched data internally.
+ */
 class WhatsNewRSSFetch {
 
 	private rssFeedURL: string = '';
@@ -311,6 +365,10 @@ class WhatsNewRSSFetch {
 
 }
 
+/**
+ * The class for handling library trigger button and flyout elements.
+ * It also provides some necessary methods that can be used during development.
+ */
 class WhatsNewRSSView {
 
 	private RSS: WhatsNewRSS;
