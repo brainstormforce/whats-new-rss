@@ -11,13 +11,10 @@ The **What's New RSS** library is a JavaScript library that allows you to easily
 - [Configuration](#configuration)
 - [Methods](#methods)
 - [Examples](#examples)
-- [License](#license)
 
 ## Installation
 
-To use the library, include the following script tag in your HTML:
-
-htmlCopy code
+To use the library, download the `dist` folder in your project and include the following script tag in your HTML:
 
 ```HTML
 <link rel="stylesheet" href="_PATH/TO/LIB/DIST/whats-new-rss.min.js">
@@ -39,8 +36,6 @@ const rss = new WhatsNewRSS({
 ### HTML Structure
 
 The library expects a specific HTML structure. Ensure your container element has the required structure:
-
-htmlCopy code
 
 ```HTML
 <div id="YOUR_CONTAINER_SELECTOR">
