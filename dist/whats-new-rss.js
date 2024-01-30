@@ -163,22 +163,40 @@ var WhatsNewRSS = /** @class */ (function () {
      * Checks and counts new notification for the notification badge.
      */
     WhatsNewRSS.prototype.setNotificationsCount = function () {
-        var _this = this;
-        var lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? this.getArgs().notification.getLastPostUnixTime(this) : WhatsNewRSSCacheUtils.getLastPostUnixTime();
-        this.RSS_Fetch_Instance.fetchData()
-            .then(function (data) {
-            if (!data.length) {
-                return;
-            }
-            var currentPostUnixTime = +data[0].date;
-            if (currentPostUnixTime > lastPostUnixTime) {
-                data.forEach(function (item) {
-                    if (item.date > lastPostUnixTime) {
-                        _this.notificationsCount++;
-                    }
-                });
-                _this.RSS_View_Instance.setNotification(_this.notificationsCount);
-            }
+        return __awaiter(this, void 0, void 0, function () {
+            var lastPostUnixTime, _a;
+            var _this = this;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!('function' === typeof this.getArgs().notification.getLastPostUnixTime)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.getArgs().notification.getLastPostUnixTime(this)];
+                    case 1:
+                        _a = _b.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        _a = WhatsNewRSSCacheUtils.getLastPostUnixTime();
+                        _b.label = 3;
+                    case 3:
+                        lastPostUnixTime = _a;
+                        this.RSS_Fetch_Instance.fetchData()
+                            .then(function (data) {
+                            if (!data.length) {
+                                return;
+                            }
+                            var currentPostUnixTime = +data[0].date;
+                            if (currentPostUnixTime > lastPostUnixTime) {
+                                data.forEach(function (item) {
+                                    if (item.date > lastPostUnixTime) {
+                                        _this.notificationsCount++;
+                                    }
+                                });
+                                _this.RSS_View_Instance.setNotification(_this.notificationsCount);
+                            }
+                        });
+                        return [2 /*return*/];
+                }
+            });
         });
     };
     /**

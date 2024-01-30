@@ -193,9 +193,9 @@ class WhatsNewRSS {
 	/**
 	 * Checks and counts new notification for the notification badge.
 	 */
-	private setNotificationsCount(): void {
+	private async setNotificationsCount(): Promise<void> {
 
-		const lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? this.getArgs().notification.getLastPostUnixTime(this) : WhatsNewRSSCacheUtils.getLastPostUnixTime();
+		const lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? await this.getArgs().notification.getLastPostUnixTime(this) : WhatsNewRSSCacheUtils.getLastPostUnixTime();
 
 		this.RSS_Fetch_Instance.fetchData()
 			.then((data) => {
