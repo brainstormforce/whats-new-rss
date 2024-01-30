@@ -1,8 +1,14 @@
-type RequiredArgs = {
+/**
+ * === Whats New RSS ===
+ *
+ * Version: 1.0.1
+ * Generated on: 30th January, 2024
+ * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
+ */
+
+type ConstructorArgs = {
     rssFeedURL: string;
     selector: string;
-};
-type ConstructorArgs = Required<RequiredArgs> & {
     loaderIcon?: string;
     viewAll?: {
         link: string;
@@ -13,7 +19,11 @@ type ConstructorArgs = Required<RequiredArgs> & {
         beforeBtn?: string;
         afterBtn?: string;
         className?: string;
-        onClick?: Function;
+        onClick?: ((RSS: WhatsNewRSS) => void);
+    };
+    notification?: {
+        setLastPostUnixTime?: null | ((unixTime: number) => void);
+        getLastPostUnixTime?: null | ((RSS: WhatsNewRSS) => number);
     };
     flyout?: {
         title?: string;
@@ -21,9 +31,9 @@ type ConstructorArgs = Required<RequiredArgs> & {
         closeBtnIcon?: string;
         closeOnEsc?: boolean;
         closeOnOverlayClick?: boolean;
-        onOpen?: Function;
-        onClose?: Function;
-        onReady?: Function;
+        onOpen?: ((RSS: WhatsNewRSS) => void);
+        onClose?: ((RSS: WhatsNewRSS) => void);
+        onReady?: ((RSS: WhatsNewRSS) => void);
     };
 };
 declare const WhatsNewRSSDefaultArgs: ConstructorArgs;
@@ -45,6 +55,10 @@ declare class WhatsNewRSS {
      * RSS View instance.
      */
     private RSS_View_Instance;
+    /**
+     * Total number of new notification counts.
+     */
+    private notificationsCount;
     /**
      * Initialize our class.
      *
@@ -90,13 +104,29 @@ declare class WhatsNewRSS {
      */
     getID(): string;
     /**
-     * Handles the hide/show of the notification badge of the trigger button.
+     * Checks and counts new notification for the notification badge.
      */
-    private handleNotificationBadge;
+    private setNotificationsCount;
+    /**
+     * Returns total number of new notifications.
+     *
+     * @returns {number}
+     */
+    getNotificationsCount(): number;
     /**
      * Sets the triggers for the library, eg: close, open, fetch.
      */
     private setTriggers;
+}
+declare class WhatsNewRSSCacheUtils {
+    static keys: {
+        LAST_LATEST_POST: string;
+        SESSION: string;
+    };
+    static setSessionData(data: string): void;
+    static getSessionData(): string;
+    static setLastPostUnixTime(unixTime: number): void;
+    static getLastPostUnixTime(): number;
 }
 /**
  * Class for handling the data fetching.
@@ -120,7 +150,7 @@ declare class WhatsNewRSSView {
     getFlyoutID(): string;
     getFlyoutCloseBtnID(): string;
     setIsLoading(isLoading?: boolean): void;
-    setNotification(hasNotification?: boolean): void;
+    setNotification(notificationsCount: number | false): void;
     private createTriggerButton;
     private createFlyOut;
     innerContentWrapper(content: string): string;

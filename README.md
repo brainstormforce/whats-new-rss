@@ -17,8 +17,8 @@ The **What's New RSS** library is a JavaScript library that allows you to easily
 To use the library, download the `dist` folder in your project and include the following script tag in your HTML:
 
 ```HTML
-<link rel="stylesheet" href="_PATH/TO/LIB/DIST/whats-new-rss.min.js">
-<script src="_PATH/TO/LIB/DIST/whats-new-rss.min.js"></script>
+<link rel="stylesheet" href="URL_TO_LIB_DIST/whats-new-rss.min.css">
+<script src="URL_TO_LIB_DIST/whats-new-rss.min.js"></script>
 ```
 
 ## Usage
@@ -60,6 +60,9 @@ The `WhatsNewRSS` class accepts the following configuration options:
   - `afterBtn` (string, optional): HTML code to be inserted after the trigger button.
   - `className` (string, optional): Additional CSS class for the trigger button.
   - `onClick` (function, optional): Function to be executed on trigger button click.
+- `notification` (object, optional): Configuration for notification handlers.
+  - `setLastPostUnixTime` (function, optional): You can use this method to save the UnixTime in your server.
+  - `getLastPostUnixTime` (function, optional): You can use this method to fetch the saved UnixTime from your server when needed.
 - `flyout` (object, optional): Configuration for the flyout.
   - `title` (string, optional): Title of the flyout.
   - `className` (string, optional): Additional CSS class for the flyout.
@@ -103,9 +106,21 @@ const rss = new WhatsNewRSS({
   triggerButton: {
     icon: '<your-custom-icon-svg>',
     className: 'custom-trigger-btn',
-    onClick: () => {
+    onClick: (RSS) => {
       console.log('Trigger button clicked!');
     },
+  },
+  notification: {
+    setLastPostUnixTime: (unixTime) => {
+      // You can use this method to save the UnixTime in your server.
+    },
+    getLastPostUnixTime: (RSS) => {
+      // You can fetch saved "UnixTime" from your server.
+      // Must always return UnixTime.
+
+      // Eg:
+      return 1706191615000; // Example.
+    }
   },
   flyout: {
     title: 'Latest Updates',
@@ -113,13 +128,13 @@ const rss = new WhatsNewRSS({
     closeBtnIcon: '<your-custom-close-icon-svg>',
     closeOnEsc: true,
     closeOnOverlayClick: true,
-    onOpen: () => {
+    onOpen: (RSS) => {
       console.log('Flyout opened!');
     },
-    onClose: () => {
+    onClose: (RSS) => {
       console.log('Flyout closed!');
     },
-    onReady: () => {
+    onReady: (RSS) => {
       console.log('Flyout is ready!');
     },
   },

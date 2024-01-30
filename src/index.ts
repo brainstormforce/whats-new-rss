@@ -1,9 +1,6 @@
-type RequiredArgs = {
+type ConstructorArgs = {
 	rssFeedURL: string,
 	selector: string
-}
-
-type ConstructorArgs = Required<RequiredArgs> & {
 	loaderIcon?: string,
 	viewAll?: {
 		link: string,
@@ -14,17 +11,21 @@ type ConstructorArgs = Required<RequiredArgs> & {
 		beforeBtn?: string,
 		afterBtn?: string,
 		className?: string,
-		onClick?: Function,
+		onClick?: ((RSS: WhatsNewRSS) => void),
 	},
+	notification?: {
+		setLastPostUnixTime?: null | ((unixTime: number) => void),
+		getLastPostUnixTime?: null | ((RSS: WhatsNewRSS) => number),
+	}
 	flyout?: {
 		title?: string,
 		className?: string,
 		closeBtnIcon?: string,
 		closeOnEsc?: boolean,
 		closeOnOverlayClick?: boolean,
-		onOpen?: Function,
-		onClose?: Function,
-		onReady?: Function,
+		onOpen?: ((RSS: WhatsNewRSS) => void),
+		onClose?: ((RSS: WhatsNewRSS) => void),
+		onReady?: ((RSS: WhatsNewRSS) => void),
 	}
 }
 
@@ -46,6 +47,10 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 		afterBtn: '',
 		className: '',
 		onClick: () => { },
+	},
+	notification: {
+		setLastPostUnixTime: null,
+		getLastPostUnixTime: null
 	},
 	flyout: {
 		title: "What's New?",
@@ -84,6 +89,11 @@ class WhatsNewRSS {
 	private RSS_View_Instance: WhatsNewRSSView;
 
 	/**
+	 * Total number of new notification counts.
+	 */
+	private notificationsCount = 0;
+
+	/**
 	 * Initialize our class.
 	 *
 	 * @param {ConstructorArgs} args
@@ -98,7 +108,7 @@ class WhatsNewRSS {
 		this.RSS_Fetch_Instance = new WhatsNewRSSFetch(this);
 		this.RSS_View_Instance = new WhatsNewRSSView(this);
 
-		this.handleNotificationBadge();
+		this.setNotificationsCount();
 		this.setTriggers();
 	}
 
@@ -181,11 +191,11 @@ class WhatsNewRSS {
 	}
 
 	/**
-	 * Handles the hide/show of the notification badge of the trigger button.
+	 * Checks and counts new notification for the notification badge.
 	 */
-	private handleNotificationBadge(): void {
+	private setNotificationsCount(): void {
 
-		const lastLatestPost = +window.localStorage.getItem('whats-new-rss-lastLatestPost');
+		const lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? this.getArgs().notification.getLastPostUnixTime(this) : WhatsNewRSSCacheUtils.getLastPostUnixTime();
 
 		this.RSS_Fetch_Instance.fetchData()
 			.then((data) => {
@@ -193,13 +203,29 @@ class WhatsNewRSS {
 					return;
 				}
 
-				const latestPostDate = +data[0].date;
+				const currentPostUnixTime = +data[0].date;
 
-				if (latestPostDate > lastLatestPost) {
-					this.RSS_View_Instance.setNotification(true);
+				if (currentPostUnixTime > lastPostUnixTime) {
+
+					data.forEach((item) => {
+						if (item.date > lastPostUnixTime) {
+							this.notificationsCount++;
+						}
+					});
+
+					this.RSS_View_Instance.setNotification(this.notificationsCount);
 				}
 			});
 
+	}
+
+	/**
+	 * Returns total number of new notifications.
+	 *
+	 * @returns {number}
+	 */
+	public getNotificationsCount(): number {
+		return this.notificationsCount;
 	}
 
 	/**
@@ -236,7 +262,11 @@ class WhatsNewRSS {
 				.then((data) => {
 
 					// Set the last latest post date for notification handling.
-					window.localStorage.setItem('whats-new-rss-lastLatestPost', data[0].date);
+					if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+						this.getArgs().notification.setLastPostUnixTime(data[0].date);
+					} else {
+						WhatsNewRSSCacheUtils.setLastPostUnixTime(data[0].date);
+					}
 
 					flyoutInner.innerHTML = '';
 
@@ -309,6 +339,30 @@ class WhatsNewRSS {
 	}
 }
 
+class WhatsNewRSSCacheUtils {
+
+	static keys = {
+		LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
+		SESSION: "whats-new-rss-session-cache-response"
+	}
+
+	static setSessionData(data: string) {
+		return window.sessionStorage.setItem(this.keys.SESSION, data);
+	}
+
+	static getSessionData() {
+		return window.sessionStorage.getItem(this.keys.SESSION);
+	}
+
+	static setLastPostUnixTime(unixTime: number) {
+		return window.localStorage.setItem(this.keys.LAST_LATEST_POST, unixTime.toString());
+	}
+
+	static getLastPostUnixTime() {
+		return +window.localStorage.getItem(this.keys.LAST_LATEST_POST);
+	}
+}
+
 /**
  * Class for handling the data fetching.
  * It also handles the session caching of the fetched data internally.
@@ -324,7 +378,7 @@ class WhatsNewRSSFetch {
 	constructor(RSS: WhatsNewRSS) {
 		this.rssFeedURL = RSS.getArgs().rssFeedURL;
 
-		const sessionCache = JSON.parse(window.sessionStorage.getItem('whats-new-rss-session-cache'));
+		const sessionCache = JSON.parse(WhatsNewRSSCacheUtils.getSessionData());
 
 		if (sessionCache && sessionCache.length) {
 			this.data = sessionCache;
@@ -358,7 +412,7 @@ class WhatsNewRSSFetch {
 			});
 		});
 
-		window.sessionStorage.setItem('whats-new-rss-session-cache', JSON.stringify(this.data))
+		WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data));
 
 		return this.data;
 	}
@@ -403,11 +457,12 @@ class WhatsNewRSSView {
 		}
 	}
 
-	public setNotification(hasNotification = false) {
+	public setNotification(notificationsCount: number | false) {
 
 		const notificationBadge = document.querySelector(`#${this.getTriggerButtonID()} .whats-new-rss-notification-badge`);
 
-		if (hasNotification) {
+		if (!!notificationsCount) {
+			notificationBadge.innerHTML = notificationsCount > 9 ? "9+" : notificationsCount.toString();
 			notificationBadge.classList.remove('hide');
 		} else {
 			notificationBadge.classList.add('hide');
@@ -420,7 +475,7 @@ class WhatsNewRSSView {
 		${this.RSS.getArgs().triggerButton.beforeBtn}
 		<a class="whats-new-rss-trigger-button" id="${this.getTriggerButtonID()}">
 			${this.RSS.getArgs().triggerButton.icon}
-			<div class="whats-new-rss-notification-badge hide"></div>
+			<div class="whats-new-rss-notification-badge hide">0</div>
 		</a>
 		${this.RSS.getArgs().triggerButton.afterBtn}
 		`;
