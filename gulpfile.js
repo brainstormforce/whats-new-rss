@@ -3,6 +3,7 @@ const sass = require('gulp-sass')(require('node-sass'));
 const minifyCSS = require('gulp-clean-css');
 const rename = require('gulp-rename');
 const uglify = require('gulp-uglify');
+const headerComment = require('gulp-header-comment');
 
 function handleScssBuild() {
 	return gulp.src("src/scss/**/*.scss")
@@ -25,7 +26,19 @@ function handleUglifyJS() {
 		.pipe(gulp.dest('dist/'));
 }
 
+function handleFileHeaders() {
+	return gulp.src('dist/**')
+		.pipe(headerComment(`
+		=== Whats New RSS ===
+
+		Version: <%= pkg.version %>
+		Generated on: <%= moment().format('Do MMMM, YYYY') %>
+		Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
+		`)).pipe(gulp.dest('dist/'))
+}
+
 gulp.task('sass', handleScssBuild);
 gulp.task('sass:minify', handleMinifyCSS);
 gulp.task('sass:watch', () => gulp.watch("src/scss/**/*.scss", handleScssBuild));
 gulp.task('uglify', handleUglifyJS);
+gulp.task('headers', handleFileHeaders);

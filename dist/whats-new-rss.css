@@ -1,3 +1,11 @@
+/**
+ * === Whats New RSS ===
+ *
+ * Version: 1.0.1
+ * Generated on: 31st January, 2024
+ * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
+ */
+
 .whats-new-rss-is-active {
   overflow: hidden; }
 
@@ -9,13 +17,16 @@
   padding: 5px;
   cursor: pointer; }
   .whats-new-rss-trigger-button .whats-new-rss-notification-badge {
-    background: red;
-    width: 8px;
-    height: 8px;
-    border-radius: 10px;
     position: absolute;
-    top: 0;
-    right: 0;
+    top: -8px;
+    right: -5px;
+    width: 20px;
+    font-size: 10px;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 10px;
+    color: #fff;
+    background: red;
     transition: transform 0.2s ease-in-out; }
     .whats-new-rss-trigger-button .whats-new-rss-notification-badge.hide {
       display: none; }

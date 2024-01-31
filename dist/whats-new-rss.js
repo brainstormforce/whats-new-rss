@@ -1,3 +1,11 @@
+/**
+ * === Whats New RSS ===
+ *
+ * Version: 1.0.1
+ * Generated on: 31st January, 2024
+ * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
+ */
+
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -60,6 +68,10 @@ var WhatsNewRSSDefaultArgs = {
         className: '',
         onClick: function () { },
     },
+    notification: {
+        setLastPostUnixTime: null,
+        getLastPostUnixTime: null
+    },
     flyout: {
         title: "What's New?",
         className: '',
@@ -78,13 +90,17 @@ var WhatsNewRSS = /** @class */ (function () {
      * @param {ConstructorArgs} args
      */
     function WhatsNewRSS(args) {
+        /**
+         * Total number of new notification counts.
+         */
+        this.notificationsCount = 0;
         this.validateArgs(args);
         this.parseDefaults(args);
         this.setElement();
         this.setID();
         this.RSS_Fetch_Instance = new WhatsNewRSSFetch(this);
         this.RSS_View_Instance = new WhatsNewRSSView(this);
-        this.handleNotificationBadge();
+        this.setNotificationsCount();
         this.setTriggers();
     }
     /**
@@ -144,21 +160,52 @@ var WhatsNewRSS = /** @class */ (function () {
         return this.ID;
     };
     /**
-     * Handles the hide/show of the notification badge of the trigger button.
+     * Checks and counts new notification for the notification badge.
      */
-    WhatsNewRSS.prototype.handleNotificationBadge = function () {
-        var _this = this;
-        var lastLatestPost = +window.localStorage.getItem('whats-new-rss-lastLatestPost');
-        this.RSS_Fetch_Instance.fetchData()
-            .then(function (data) {
-            if (!data.length) {
-                return;
-            }
-            var latestPostDate = +data[0].date;
-            if (latestPostDate > lastLatestPost) {
-                _this.RSS_View_Instance.setNotification(true);
-            }
+    WhatsNewRSS.prototype.setNotificationsCount = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var lastPostUnixTime, _a;
+            var _this = this;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!('function' === typeof this.getArgs().notification.getLastPostUnixTime)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.getArgs().notification.getLastPostUnixTime(this)];
+                    case 1:
+                        _a = _b.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        _a = WhatsNewRSSCacheUtils.getLastPostUnixTime();
+                        _b.label = 3;
+                    case 3:
+                        lastPostUnixTime = _a;
+                        this.RSS_Fetch_Instance.fetchData()
+                            .then(function (data) {
+                            if (!data.length) {
+                                return;
+                            }
+                            var currentPostUnixTime = +data[0].date;
+                            if (currentPostUnixTime > lastPostUnixTime) {
+                                data.forEach(function (item) {
+                                    if (item.date > lastPostUnixTime) {
+                                        _this.notificationsCount++;
+                                    }
+                                });
+                                _this.RSS_View_Instance.setNotification(_this.notificationsCount);
+                            }
+                        });
+                        return [2 /*return*/];
+                }
+            });
         });
+    };
+    /**
+     * Returns total number of new notifications.
+     *
+     * @returns {number}
+     */
+    WhatsNewRSS.prototype.getNotificationsCount = function () {
+        return this.notificationsCount;
     };
     /**
      * Sets the triggers for the library, eg: close, open, fetch.
@@ -187,7 +234,12 @@ var WhatsNewRSS = /** @class */ (function () {
             _this.RSS_Fetch_Instance.fetchData()
                 .then(function (data) {
                 // Set the last latest post date for notification handling.
-                window.localStorage.setItem('whats-new-rss-lastLatestPost', data[0].date);
+                if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
+                    _this.getArgs().notification.setLastPostUnixTime(data[0].date);
+                }
+                else {
+                    WhatsNewRSSCacheUtils.setLastPostUnixTime(data[0].date);
+                }
                 flyoutInner.innerHTML = '';
                 data.forEach(function (item) {
                     flyoutInner.innerHTML += _this.RSS_View_Instance.innerContentWrapper("\n\t\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.timeAgo(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t").concat(item.description, "\n\t\t\t\t\t\t\t"));
@@ -237,6 +289,27 @@ var WhatsNewRSS = /** @class */ (function () {
     };
     return WhatsNewRSS;
 }());
+var WhatsNewRSSCacheUtils = /** @class */ (function () {
+    function WhatsNewRSSCacheUtils() {
+    }
+    WhatsNewRSSCacheUtils.setSessionData = function (data) {
+        return window.sessionStorage.setItem(this.keys.SESSION, data);
+    };
+    WhatsNewRSSCacheUtils.getSessionData = function () {
+        return window.sessionStorage.getItem(this.keys.SESSION);
+    };
+    WhatsNewRSSCacheUtils.setLastPostUnixTime = function (unixTime) {
+        return window.localStorage.setItem(this.keys.LAST_LATEST_POST, unixTime.toString());
+    };
+    WhatsNewRSSCacheUtils.getLastPostUnixTime = function () {
+        return +window.localStorage.getItem(this.keys.LAST_LATEST_POST);
+    };
+    WhatsNewRSSCacheUtils.keys = {
+        LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
+        SESSION: "whats-new-rss-session-cache-response"
+    };
+    return WhatsNewRSSCacheUtils;
+}());
 /**
  * Class for handling the data fetching.
  * It also handles the session caching of the fetched data internally.
@@ -246,7 +319,7 @@ var WhatsNewRSSFetch = /** @class */ (function () {
         this.rssFeedURL = '';
         this.data = [];
         this.rssFeedURL = RSS.getArgs().rssFeedURL;
-        var sessionCache = JSON.parse(window.sessionStorage.getItem('whats-new-rss-session-cache'));
+        var sessionCache = JSON.parse(WhatsNewRSSCacheUtils.getSessionData());
         if (sessionCache && sessionCache.length) {
             this.data = sessionCache;
         }
@@ -279,7 +352,7 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                                 description: item.querySelector('content\\:encoded').innerHTML,
                             });
                         });
-                        window.sessionStorage.setItem('whats-new-rss-session-cache', JSON.stringify(this.data));
+                        WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data));
                         return [2 /*return*/, this.data];
                 }
             });
@@ -316,10 +389,10 @@ var WhatsNewRSSView = /** @class */ (function () {
             flyoutWrapper.classList.remove('is-loading');
         }
     };
-    WhatsNewRSSView.prototype.setNotification = function (hasNotification) {
-        if (hasNotification === void 0) { hasNotification = false; }
+    WhatsNewRSSView.prototype.setNotification = function (notificationsCount) {
         var notificationBadge = document.querySelector("#".concat(this.getTriggerButtonID(), " .whats-new-rss-notification-badge"));
-        if (hasNotification) {
+        if (!!notificationsCount) {
+            notificationBadge.innerHTML = notificationsCount > 9 ? "9+" : notificationsCount.toString();
             notificationBadge.classList.remove('hide');
         }
         else {
@@ -327,7 +400,7 @@ var WhatsNewRSSView = /** @class */ (function () {
         }
     };
     WhatsNewRSSView.prototype.createTriggerButton = function () {
-        var button = "\n\t\t".concat(this.RSS.getArgs().triggerButton.beforeBtn, "\n\t\t<a class=\"whats-new-rss-trigger-button\" id=\"").concat(this.getTriggerButtonID(), "\">\n\t\t\t").concat(this.RSS.getArgs().triggerButton.icon, "\n\t\t\t<div class=\"whats-new-rss-notification-badge hide\"></div>\n\t\t</a>\n\t\t").concat(this.RSS.getArgs().triggerButton.afterBtn, "\n\t\t");
+        var button = "\n\t\t".concat(this.RSS.getArgs().triggerButton.beforeBtn, "\n\t\t<a class=\"whats-new-rss-trigger-button\" id=\"").concat(this.getTriggerButtonID(), "\">\n\t\t\t").concat(this.RSS.getArgs().triggerButton.icon, "\n\t\t\t<div class=\"whats-new-rss-notification-badge hide\">0</div>\n\t\t</a>\n\t\t").concat(this.RSS.getArgs().triggerButton.afterBtn, "\n\t\t");
         this.RSS.getElement().innerHTML += button;
     };
     WhatsNewRSSView.prototype.createFlyOut = function () {

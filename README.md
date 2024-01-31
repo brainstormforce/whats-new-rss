@@ -17,8 +17,8 @@ The **What's New RSS** library is a JavaScript library that allows you to easily
 To use the library, download the `dist` folder in your project and include the following script tag in your HTML:
 
 ```HTML
-<link rel="stylesheet" href="_PATH/TO/LIB/DIST/whats-new-rss.min.js">
-<script src="_PATH/TO/LIB/DIST/whats-new-rss.min.js"></script>
+<link rel="stylesheet" href="URL_TO_LIB_DIST/whats-new-rss.min.css">
+<script src="URL_TO_LIB_DIST/whats-new-rss.min.js"></script>
 ```
 
 ## Usage
@@ -60,6 +60,9 @@ The `WhatsNewRSS` class accepts the following configuration options:
   - `afterBtn` (string, optional): HTML code to be inserted after the trigger button.
   - `className` (string, optional): Additional CSS class for the trigger button.
   - `onClick` (function, optional): Function to be executed on trigger button click.
+- `notification` (object, optional): Configuration for notification handlers.
+  - `setLastPostUnixTime` (function, optional): You can use this method to save the UnixTime in your server.
+  - `getLastPostUnixTime` (function, optional): You can use this method to fetch the saved UnixTime from your server when needed.
 - `flyout` (object, optional): Configuration for the flyout.
   - `title` (string, optional): Title of the flyout.
   - `className` (string, optional): Additional CSS class for the flyout.
@@ -77,6 +80,7 @@ The `WhatsNewRSS` class provides the following methods:
 - `getArgs()`: Returns the parsed configuration arguments.
 - `getElement()`: Returns the HTML element according to the provided selector.
 - `getID()`: Returns the unique ID for the current instance.
+- `getNotificationsCount()`: Returns the total number of new notifications count.
 
 ## Examples
 
@@ -97,15 +101,29 @@ const rss = new WhatsNewRSS({
   selector: '#whats-new-container',
   loaderIcon: '<your-custom-loader-svg>',
   viewAll: {
-    link: 'FULL_FEED_LINK',
+    link: 'FULL_FEED_LINK', // When provided, the user will see a button by the label ( which we provide at viewAll > label ) at the end of the posts list.
     label: 'See All Updates',
   },
   triggerButton: {
     icon: '<your-custom-icon-svg>',
     className: 'custom-trigger-btn',
-    onClick: () => {
+    onClick: (RSS) => {
       console.log('Trigger button clicked!');
     },
+  },
+  notification: {
+    setLastPostUnixTime: (unixTime) => {
+      // You can use this method to save the UnixTime in your server.
+    },
+    getLastPostUnixTime: (RSS) => {
+      // You can fetch saved "UnixTime" from your server.
+      // Must always return UnixTime.
+
+      // If you are using API call, using fetch or axios like libraries, then you can make this function asynchronous.
+
+      // Eg:
+      return 1706191615000; // Example.
+    }
   },
   flyout: {
     title: 'Latest Updates',
@@ -113,15 +131,65 @@ const rss = new WhatsNewRSS({
     closeBtnIcon: '<your-custom-close-icon-svg>',
     closeOnEsc: true,
     closeOnOverlayClick: true,
-    onOpen: () => {
+    onOpen: (RSS) => {
       console.log('Flyout opened!');
     },
-    onClose: () => {
+    onClose: (RSS) => {
       console.log('Flyout closed!');
     },
-    onReady: () => {
+    onReady: (RSS) => {
       console.log('Flyout is ready!');
     },
   },
 });
+```
+
+### Saving Last Post UnixTime at the server side ( Overriding library's notification handler )
+
+Here, we'll explore a simple example of saving the latest post Unix time in the database using WordPress AJAX, organized by user ID. This enables us to display notification counts to users seamlessly, regardless of where they log in on their website.
+
+#### Lets create an Ajax function in our PHP file:
+
+```PHP
+// File: ajax.php
+
+add_action( 'wp_ajax_astra_debugger', function() {
+
+	$user_id = get_current_user_id();
+
+	if ( ! empty( $_GET['unixtime'] ) ) {
+		wp_send_json_success( update_user_meta( $user_id, 'astra_debugger_last_post_unixtime', absint( $_GET['unixtime'] ) ) );
+	}
+
+	wp_send_json_success( get_user_meta( $user_id, 'astra_debugger_last_post_unixtime', true ) );
+} );
+
+```
+
+#### Now, in our JS file:
+
+```JS
+// File: public.js
+
+const rss = new WhatsNewRSS({
+  rssFeedURL: 'https://zipwp.com/whats-new/feed',
+  selector: '#ast-hf-menu-1',
+  notification: {
+    setLastPostUnixTime(unixtime) {
+      fetch(`http://YOUR_WEBSITE_DOMAIN/wp-admin/admin-ajax.php?action=YOUR_AJAX_ACTION&unixtime=${unixtime}`);
+    },
+    async getLastPostUnixTime(rss) {
+      let unixtime = 0;
+      await fetch(`http://YOUR_WEBSITE_DOMAIN/wp-admin/admin-ajax.php?action=YOUR_AJAX_ACTION`)
+      .then((res) => res.json())
+      .then((res) => {
+        unixtime = res.data;
+      });
+
+      return unixtime;
+    }
+  }
+});
+
+console.log(rss);
 ```

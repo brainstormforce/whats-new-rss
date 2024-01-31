@@ -1,15 +1,16 @@
 {
   "name": "whats-new-rss",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf dist && tsc --sourceMap false && gulp sass:minify && gulp uglify",
+    "build": "rm -rf dist && tsc --sourceMap false && gulp sass:minify && gulp uglify && gulp headers",
     "start": "gulp sass:watch | tsc --watch"
   },
   "devDependencies": {
     "gulp": "^4.0.2",
     "gulp-clean-css": "^4.3.0",
+    "gulp-header-comment": "^0.10.0",
     "gulp-rename": "^2.0.0",
     "gulp-sass": "^5.1.0",
     "gulp-uglify": "^3.0.2",
