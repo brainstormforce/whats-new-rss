@@ -1,8 +1,8 @@
 /**
  * === Whats New RSS ===
  *
- * Version: 1.0.1
- * Generated on: 31st January, 2024
+ * Version: 1.0.2
+ * Generated on: 6th February, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -74,6 +74,14 @@ var WhatsNewRSSDefaultArgs = {
     },
     flyout: {
         title: "What's New?",
+        excerpt: {
+            wordLimit: 500,
+            moreSymbol: '&hellip;',
+            readMore: {
+                label: 'Read More',
+                className: '',
+            }
+        },
         className: '',
         closeOnEsc: true,
         closeOnOverlayClick: true,
@@ -121,7 +129,7 @@ var WhatsNewRSS = /** @class */ (function () {
      * @param {ConstructorArgs} args
      */
     WhatsNewRSS.prototype.parseDefaults = function (args) {
-        this.args = __assign(__assign(__assign({}, WhatsNewRSSDefaultArgs), args), { viewAll: __assign(__assign({}, WhatsNewRSSDefaultArgs.viewAll), args.viewAll), triggerButton: __assign(__assign({}, WhatsNewRSSDefaultArgs.triggerButton), args.triggerButton), flyout: __assign(__assign({}, WhatsNewRSSDefaultArgs.flyout), args.flyout) });
+        this.args = __assign(__assign(__assign({}, WhatsNewRSSDefaultArgs), args), { viewAll: __assign(__assign({}, WhatsNewRSSDefaultArgs.viewAll), args.viewAll), triggerButton: __assign(__assign({}, WhatsNewRSSDefaultArgs.triggerButton), args.triggerButton), flyout: __assign(__assign(__assign({}, WhatsNewRSSDefaultArgs.flyout), args.flyout), { excerpt: __assign(__assign({}, WhatsNewRSSDefaultArgs.flyout.excerpt), args.flyout.excerpt) }) });
     };
     /**
      * Returns parsed args.
@@ -242,7 +250,7 @@ var WhatsNewRSS = /** @class */ (function () {
                 }
                 flyoutInner.innerHTML = '';
                 data.forEach(function (item) {
-                    flyoutInner.innerHTML += _this.RSS_View_Instance.innerContentWrapper("\n\t\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.timeAgo(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t").concat(item.description, "\n\t\t\t\t\t\t\t"));
+                    flyoutInner.innerHTML += _this.RSS_View_Instance.innerContentWrapper("\n\t\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.timeAgo(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t\t<a href=\"").concat(item.postLink, "\" target=\"_blank\">\n\t\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.createExcerpt(item.description, item.postLink, _this.getArgs().flyout.excerpt), "\n\t\t\t\t\t\t\t"));
                 });
                 if (_this.getArgs().viewAll.link) {
                     // If we have link provided for the view all button then append a view all button at the end of the contents.
@@ -342,13 +350,14 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                     case 2:
                         data = _b.sent();
                         _div = document.createElement('div');
-                        _div.innerHTML = data.replace(/\s*]]>\s*/g, '');
+                        _div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-link">$1</a>').replace(/\s*]]>\s*/g, '');
                         items = _div.querySelectorAll('item');
                         items.forEach(function (item) {
                             var rssDate = item.querySelector('pubDate').innerHTML;
                             _this.data.push({
                                 title: item.querySelector('title').innerHTML,
                                 date: !!rssDate ? +new Date(rssDate) : null,
+                                postLink: item.querySelector('.whats-new-rss-link').innerHTML.trim(),
                                 description: item.querySelector('content\\:encoded').innerHTML,
                             });
                         });
@@ -411,11 +420,34 @@ var WhatsNewRSSView = /** @class */ (function () {
         if (this.RSS.getArgs().flyout.className) {
             wrapperClasses.push(this.RSS.getArgs().flyout.className);
         }
-        var flyout = "\n\t\t<div class=\"".concat(wrapperClasses.join(' '), "\" id=\"").concat(this.getFlyoutID(), "\" role=\"dialog\">\n\n\t\t\t<div class=\"whats-new-rss-flyout-contents\">\n\n\t\t\t\t<div class=\"whats-new-rss-flyout-inner-header\">\n\n\t\t\t\t\t<div class=\"whats-new-rss-flyout-inner-header__title-icon-wrapper\">\n\t\t\t\t\t\t<h3>").concat(this.RSS.getArgs().flyout.title, "</h3>\n\n\t\t\t\t\t\t<span class=\"whats-new-rss-flyout-inner-header__loading-icon\">\n\t\t\t\t\t\t").concat(this.RSS.getArgs().loaderIcon, "\n\t\t\t\t\t\t</span>\n\t\t\t\t\t</div>\n\n\t\t\t\t\t<button type=\"button\" id=\"").concat(this.getFlyoutCloseBtnID(), "\">").concat(this.RSS.getArgs().flyout.closeBtnIcon, "</button>\n\t\t\t\t</div>\n\n\t\t\t\t<div class=\"whats-new-rss-flyout-inner-content\">\n\t\t\t\t\t<div class=\"skeleton-container\">\n\t\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\n\t\t\t</div>\n\n\t\t\t<div class=\"whats-new-rss-flyout-overlay\"></div>\n\t\t</div>\n\t\t");
-        document.body.innerHTML += flyout;
+        var flyoutWrapper = document.createElement('div');
+        flyoutWrapper.setAttribute('id', this.getFlyoutID());
+        flyoutWrapper.setAttribute('class', wrapperClasses.join(' '));
+        flyoutWrapper.setAttribute('role', 'dialog');
+        flyoutWrapper.innerHTML = "\n\t\t<div class=\"whats-new-rss-flyout-contents\">\n\n\t\t\t<div class=\"whats-new-rss-flyout-inner-header\">\n\n\t\t\t\t<div class=\"whats-new-rss-flyout-inner-header__title-icon-wrapper\">\n\t\t\t\t\t<h3>".concat(this.RSS.getArgs().flyout.title, "</h3>\n\n\t\t\t\t\t<span class=\"whats-new-rss-flyout-inner-header__loading-icon\">\n\t\t\t\t\t").concat(this.RSS.getArgs().loaderIcon, "\n\t\t\t\t\t</span>\n\t\t\t\t</div>\n\n\t\t\t\t<button type=\"button\" id=\"").concat(this.getFlyoutCloseBtnID(), "\">").concat(this.RSS.getArgs().flyout.closeBtnIcon, "</button>\n\t\t\t</div>\n\n\t\t\t<div class=\"whats-new-rss-flyout-inner-content\">\n\t\t\t\t<div class=\"skeleton-container\">\n\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t</div>\n\t\t\t</div>\n\n\t\t</div>\n\n\t\t<div class=\"whats-new-rss-flyout-overlay\"></div>\n\t\t");
+        document.body.appendChild(flyoutWrapper);
     };
     WhatsNewRSSView.prototype.innerContentWrapper = function (content) {
         return "\n\t\t<div class=\"whats-new-rss-flyout-inner-content-item\">\n\t\t\t".concat(content, "\n\t\t</div>\n\t\t");
+    };
+    WhatsNewRSSView.prototype.createExcerpt = function (content, readMoreLink, options) {
+        var wordLimit = options.wordLimit, moreSymbol = options.moreSymbol, readMore = options.readMore;
+        if (!wordLimit) {
+            return content;
+        }
+        var plainText = content.replace(/<[^>]*>/g, '');
+        var words = plainText.split(/\s+/);
+        var rawExcerpt = words.slice(0, wordLimit).join(' ');
+        if (moreSymbol) {
+            rawExcerpt += moreSymbol;
+        }
+        if (wordLimit > words.length) {
+            return content;
+        }
+        if (!!readMoreLink && !!(readMore === null || readMore === void 0 ? void 0 : readMore.label)) {
+            return "<p>".concat(rawExcerpt, " <a href=\"").concat(readMoreLink, "\" target=\"_blank\" class=\"").concat(readMore.className, "\">").concat(readMore.label, "</a></p>");
+        }
+        return "<p>".concat(rawExcerpt, "</p>");
     };
     WhatsNewRSSView.prototype.timeAgo = function (date) {
         var currentDate = new Date();

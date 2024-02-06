@@ -65,6 +65,12 @@ The `WhatsNewRSS` class accepts the following configuration options:
   - `getLastPostUnixTime` (function, optional): You can use this method to fetch the saved UnixTime from your server when needed.
 - `flyout` (object, optional): Configuration for the flyout.
   - `title` (string, optional): Title of the flyout.
+  - `excerpt` (object, optional): Configuration for the excerpt.
+  - `wordLimit` (number | null, optional): Total length of the content to keep after trimming. Default is `500 words`. Provide `null` to disable excerpt.
+  - `moreSymbol` (string, optional): Symbol to append after excerpt. Default: `&hellip;`: &hellip;
+  - `readMore` (object | optional): Configuration for the excerpt read more link.
+    - `label` (string | optional): Read more link label.
+    - `className` (string | optional): Additional class read more link.
   - `className` (string, optional): Additional CSS class for the flyout.
   - `closeBtnIcon` (string, optional): SVG code for the close button icon.
   - `closeOnEsc` (boolean, optional): Close the flyout on ESC key press.
@@ -101,45 +107,53 @@ const rss = new WhatsNewRSS({
   selector: '#whats-new-container',
   loaderIcon: '<your-custom-loader-svg>',
   viewAll: {
-    link: 'FULL_FEED_LINK', // When provided, the user will see a button by the label ( which we provide at viewAll > label ) at the end of the posts list.
-    label: 'See All Updates',
+	link: 'FULL_FEED_LINK', // When provided, the user will see a button by the label ( which we provide at viewAll > label ) at the end of the posts list.
+	label: 'See All Updates',
   },
   triggerButton: {
-    icon: '<your-custom-icon-svg>',
-    className: 'custom-trigger-btn',
-    onClick: (RSS) => {
-      console.log('Trigger button clicked!');
-    },
+	icon: '<your-custom-icon-svg>',
+	className: 'custom-trigger-btn',
+	onClick: (RSS) => {
+	  console.log('Trigger button clicked!');
+	},
   },
   notification: {
-    setLastPostUnixTime: (unixTime) => {
-      // You can use this method to save the UnixTime in your server.
-    },
-    getLastPostUnixTime: (RSS) => {
-      // You can fetch saved "UnixTime" from your server.
-      // Must always return UnixTime.
+	setLastPostUnixTime: (unixTime) => {
+	  // You can use this method to save the UnixTime in your server.
+	},
+	getLastPostUnixTime: (RSS) => {
+	  // You can fetch saved "UnixTime" from your server.
+	  // Must always return UnixTime.
 
-      // If you are using API call, using fetch or axios like libraries, then you can make this function asynchronous.
+	  // If you are using API call, using fetch or axios like libraries, then you can make this function asynchronous.
 
-      // Eg:
-      return 1706191615000; // Example.
-    }
+	  // Eg:
+	  return 1706191615000; // Example.
+	}
   },
   flyout: {
-    title: 'Latest Updates',
-    className: 'custom-flyout',
-    closeBtnIcon: '<your-custom-close-icon-svg>',
-    closeOnEsc: true,
-    closeOnOverlayClick: true,
-    onOpen: (RSS) => {
-      console.log('Flyout opened!');
-    },
-    onClose: (RSS) => {
-      console.log('Flyout closed!');
-    },
-    onReady: (RSS) => {
-      console.log('Flyout is ready!');
-    },
+	title: 'Latest Updates',
+	excerpt: {
+		wordLimit: 500,
+		moreSymbol: '&hellip;',
+		readMore: {
+			label: 'Read More',
+			className: '',
+		}
+	},
+	className: 'custom-flyout',
+	closeBtnIcon: '<your-custom-close-icon-svg>',
+	closeOnEsc: true,
+	closeOnOverlayClick: true,
+	onOpen: (RSS) => {
+	  console.log('Flyout opened!');
+	},
+	onClose: (RSS) => {
+	  console.log('Flyout closed!');
+	},
+	onReady: (RSS) => {
+	  console.log('Flyout is ready!');
+	},
   },
 });
 ```
@@ -175,19 +189,19 @@ const rss = new WhatsNewRSS({
   rssFeedURL: 'https://zipwp.com/whats-new/feed',
   selector: '#ast-hf-menu-1',
   notification: {
-    setLastPostUnixTime(unixtime) {
-      fetch(`http://YOUR_WEBSITE_DOMAIN/wp-admin/admin-ajax.php?action=YOUR_AJAX_ACTION&unixtime=${unixtime}`);
-    },
-    async getLastPostUnixTime(rss) {
-      let unixtime = 0;
-      await fetch(`http://YOUR_WEBSITE_DOMAIN/wp-admin/admin-ajax.php?action=YOUR_AJAX_ACTION`)
-      .then((res) => res.json())
-      .then((res) => {
-        unixtime = res.data;
-      });
+	setLastPostUnixTime(unixtime) {
+	  fetch(`http://YOUR_WEBSITE_DOMAIN/wp-admin/admin-ajax.php?action=YOUR_AJAX_ACTION&unixtime=${unixtime}`);
+	},
+	async getLastPostUnixTime(rss) {
+	  let unixtime = 0;
+	  await fetch(`http://YOUR_WEBSITE_DOMAIN/wp-admin/admin-ajax.php?action=YOUR_AJAX_ACTION`)
+	  .then((res) => res.json())
+	  .then((res) => {
+		unixtime = res.data;
+	  });
 
-      return unixtime;
-    }
+	  return unixtime;
+	}
   }
 });
 

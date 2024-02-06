@@ -19,6 +19,14 @@ type ConstructorArgs = {
 	}
 	flyout?: {
 		title?: string,
+		excerpt?: {
+			wordLimit?: null | number,
+			moreSymbol?: string,
+			readMore?: {
+				label?: string,
+				className?: string,
+			}
+		},
 		className?: string,
 		closeBtnIcon?: string,
 		closeOnEsc?: boolean,
@@ -54,6 +62,14 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 	},
 	flyout: {
 		title: "What's New?",
+		excerpt: {
+			wordLimit: 500,
+			moreSymbol: '&hellip;',
+			readMore: {
+				label: 'Read More',
+				className: '',
+			}
+		},
 		className: '',
 		closeOnEsc: true,
 		closeOnOverlayClick: true,
@@ -145,6 +161,10 @@ class WhatsNewRSS {
 			flyout: {
 				...WhatsNewRSSDefaultArgs.flyout,
 				...args.flyout,
+				excerpt: {
+					...WhatsNewRSSDefaultArgs.flyout.excerpt,
+					...args.flyout.excerpt,
+				}
 			},
 		};
 	}
@@ -275,9 +295,11 @@ class WhatsNewRSS {
 							`
 							<div class="rss-content-header">
 								<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
-								<h2>${item.title}</h2>
+								<a href="${item.postLink}" target="_blank">
+									<h2>${item.title}</h2>
+								</a>
 							</div>
-							${item.description}
+							${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
 							`
 						);
 					});
@@ -397,7 +419,7 @@ class WhatsNewRSSFetch {
 
 		const _div = document.createElement('div');
 
-		_div.innerHTML = data.replace(/\s*]]>\s*/g, '');
+		_div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-link">$1</a>').replace(/\s*]]>\s*/g, '');
 
 		const items = _div.querySelectorAll('item');
 
@@ -408,6 +430,7 @@ class WhatsNewRSSFetch {
 			this.data.push({
 				title: item.querySelector('title').innerHTML,
 				date: !!rssDate ? +new Date(rssDate) : null,
+				postLink: item.querySelector('.whats-new-rss-link').innerHTML.trim(),
 				description: item.querySelector('content\\:encoded').innerHTML,
 			});
 		});
@@ -494,39 +517,41 @@ class WhatsNewRSSView {
 			wrapperClasses.push(this.RSS.getArgs().flyout.className);
 		}
 
-		let flyout = `
-		<div class="${wrapperClasses.join(' ')}" id="${this.getFlyoutID()}" role="dialog">
+		const flyoutWrapper = document.createElement('div');
+		flyoutWrapper.setAttribute('id', this.getFlyoutID());
+		flyoutWrapper.setAttribute('class', wrapperClasses.join(' '));
+		flyoutWrapper.setAttribute('role', 'dialog');
 
-			<div class="whats-new-rss-flyout-contents">
+		flyoutWrapper.innerHTML = `
+		<div class="whats-new-rss-flyout-contents">
 
-				<div class="whats-new-rss-flyout-inner-header">
+			<div class="whats-new-rss-flyout-inner-header">
 
-					<div class="whats-new-rss-flyout-inner-header__title-icon-wrapper">
-						<h3>${this.RSS.getArgs().flyout.title}</h3>
+				<div class="whats-new-rss-flyout-inner-header__title-icon-wrapper">
+					<h3>${this.RSS.getArgs().flyout.title}</h3>
 
-						<span class="whats-new-rss-flyout-inner-header__loading-icon">
-						${this.RSS.getArgs().loaderIcon}
-						</span>
-					</div>
-
-					<button type="button" id="${this.getFlyoutCloseBtnID()}">${this.RSS.getArgs().flyout.closeBtnIcon}</button>
+					<span class="whats-new-rss-flyout-inner-header__loading-icon">
+					${this.RSS.getArgs().loaderIcon}
+					</span>
 				</div>
 
-				<div class="whats-new-rss-flyout-inner-content">
-					<div class="skeleton-container">
-						<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
-						<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
-						<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
-					</div>
-				</div>
-
+				<button type="button" id="${this.getFlyoutCloseBtnID()}">${this.RSS.getArgs().flyout.closeBtnIcon}</button>
 			</div>
 
-			<div class="whats-new-rss-flyout-overlay"></div>
+			<div class="whats-new-rss-flyout-inner-content">
+				<div class="skeleton-container">
+					<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
+					<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
+					<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
+				</div>
+			</div>
+
 		</div>
+
+		<div class="whats-new-rss-flyout-overlay"></div>
 		`;
 
-		document.body.innerHTML += flyout;
+		document.body.appendChild(flyoutWrapper);
 	}
 
 	public innerContentWrapper(content: string) {
@@ -535,6 +560,33 @@ class WhatsNewRSSView {
 			${content}
 		</div>
 		`;
+	}
+
+	public createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']) {
+
+		const { wordLimit, moreSymbol, readMore } = options;
+
+		if (!wordLimit) {
+			return content;
+		}
+
+		const plainText = content.replace(/<[^>]*>/g, '');
+		const words = plainText.split(/\s+/);
+		let rawExcerpt = words.slice(0, wordLimit).join(' ');
+
+		if (moreSymbol) {
+			rawExcerpt += moreSymbol;
+		}
+
+		if (wordLimit > words.length) {
+			return content;
+		}
+
+		if (!!readMoreLink && !!readMore?.label) {
+			return `<p>${rawExcerpt} <a href="${readMoreLink}" target="_blank" class="${readMore.className}">${readMore.label}</a></p>`;
+		}
+
+		return `<p>${rawExcerpt}</p>`;
 	}
 
 	public timeAgo(date: Date) {

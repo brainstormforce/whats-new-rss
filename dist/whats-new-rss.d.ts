@@ -1,8 +1,8 @@
 /**
  * === Whats New RSS ===
  *
- * Version: 1.0.1
- * Generated on: 31st January, 2024
+ * Version: 1.0.2
+ * Generated on: 6th February, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -27,6 +27,14 @@ type ConstructorArgs = {
     };
     flyout?: {
         title?: string;
+        excerpt?: {
+            wordLimit?: null | number;
+            moreSymbol?: string;
+            readMore?: {
+                label?: string;
+                className?: string;
+            };
+        };
         className?: string;
         closeBtnIcon?: string;
         closeOnEsc?: boolean;
@@ -154,5 +162,6 @@ declare class WhatsNewRSSView {
     private createTriggerButton;
     private createFlyOut;
     innerContentWrapper(content: string): string;
+    createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']): string;
     timeAgo(date: Date): string;
 }
