@@ -66,11 +66,11 @@ The `WhatsNewRSS` class accepts the following configuration options:
 - `flyout` (object, optional): Configuration for the flyout.
   - `title` (string, optional): Title of the flyout.
   - `excerpt` (object, optional): Configuration for the excerpt.
-  - `wordLimit` (number | null, optional): Total length of the content to keep after trimming. Default is `500 words`. Provide `null` to disable excerpt.
-  - `moreSymbol` (string, optional): Symbol to append after excerpt. Default: `&hellip;`: &hellip;
-  - `readMore` (object | optional): Configuration for the excerpt read more link.
-    - `label` (string | optional): Read more link label.
-    - `className` (string | optional): Additional class read more link.
+	- `wordLimit` (number | null, optional): Total length of the content to keep after trimming. Default is `500 words`. Provide `null` to disable excerpt.
+	- `moreSymbol` (string, optional): Symbol to append after excerpt. Default: `&hellip;`: &hellip;
+	- `readMore` (object | optional): Configuration for the excerpt read more link.
+		- `label` (string | optional): Read more link label.
+		- `className` (string | optional): Additional class read more link.
   - `className` (string, optional): Additional CSS class for the flyout.
   - `closeBtnIcon` (string, optional): SVG code for the close button icon.
   - `closeOnEsc` (boolean, optional): Close the flyout on ESC key press.
