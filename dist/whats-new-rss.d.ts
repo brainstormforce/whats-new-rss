@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 6th February, 2024
+ * Generated on: 7th February, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -63,6 +63,10 @@ declare class WhatsNewRSS {
      * RSS View instance.
      */
     private RSS_View_Instance;
+    /**
+     * UnixTime stamp of the last seen or read post.
+     */
+    private lastPostUnixTime;
     /**
      * Total number of new notification counts.
      */
@@ -145,7 +149,12 @@ declare class WhatsNewRSSFetch {
     private response;
     private data;
     constructor(RSS: WhatsNewRSS);
-    fetchData(): Promise<any[]>;
+    fetchData(): Promise<{
+        title: string;
+        date: number;
+        postLink: string;
+        description: string;
+    }[]>;
 }
 /**
  * The class for handling library trigger button and flyout elements.
@@ -161,7 +170,7 @@ declare class WhatsNewRSSView {
     setNotification(notificationsCount: number | false): void;
     private createTriggerButton;
     private createFlyOut;
-    innerContentWrapper(content: string): string;
+    innerContentWrapper(content: string, isNewPost?: boolean): string;
     createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']): string;
     timeAgo(date: Date): string;
 }

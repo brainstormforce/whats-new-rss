@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 6th February, 2024
+ * Generated on: 7th February, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -99,6 +99,10 @@ var WhatsNewRSS = /** @class */ (function () {
      */
     function WhatsNewRSS(args) {
         /**
+         * UnixTime stamp of the last seen or read post.
+         */
+        this.lastPostUnixTime = 0;
+        /**
          * Total number of new notification counts.
          */
         this.notificationsCount = 0;
@@ -172,30 +176,31 @@ var WhatsNewRSS = /** @class */ (function () {
      */
     WhatsNewRSS.prototype.setNotificationsCount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var lastPostUnixTime, _a;
+            var _a, _b;
             var _this = this;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
+                        _a = this;
                         if (!('function' === typeof this.getArgs().notification.getLastPostUnixTime)) return [3 /*break*/, 2];
                         return [4 /*yield*/, this.getArgs().notification.getLastPostUnixTime(this)];
                     case 1:
-                        _a = _b.sent();
+                        _b = _c.sent();
                         return [3 /*break*/, 3];
                     case 2:
-                        _a = WhatsNewRSSCacheUtils.getLastPostUnixTime();
-                        _b.label = 3;
+                        _b = +WhatsNewRSSCacheUtils.getLastPostUnixTime();
+                        _c.label = 3;
                     case 3:
-                        lastPostUnixTime = _a;
+                        _a.lastPostUnixTime = _b;
                         this.RSS_Fetch_Instance.fetchData()
                             .then(function (data) {
                             if (!data.length) {
                                 return;
                             }
                             var currentPostUnixTime = +data[0].date;
-                            if (currentPostUnixTime > lastPostUnixTime) {
+                            if (currentPostUnixTime > _this.lastPostUnixTime) {
                                 data.forEach(function (item) {
-                                    if (item.date > lastPostUnixTime) {
+                                    if (item.date > _this.lastPostUnixTime) {
                                         _this.notificationsCount++;
                                     }
                                 });
@@ -241,16 +246,12 @@ var WhatsNewRSS = /** @class */ (function () {
              */
             _this.RSS_Fetch_Instance.fetchData()
                 .then(function (data) {
-                // Set the last latest post date for notification handling.
-                if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
-                    _this.getArgs().notification.setLastPostUnixTime(data[0].date);
-                }
-                else {
-                    WhatsNewRSSCacheUtils.setLastPostUnixTime(data[0].date);
-                }
+                var currentPostUnixTime = +data[0].date;
                 flyoutInner.innerHTML = '';
                 data.forEach(function (item) {
-                    flyoutInner.innerHTML += _this.RSS_View_Instance.innerContentWrapper("\n\t\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.timeAgo(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t\t<a href=\"").concat(item.postLink, "\" target=\"_blank\">\n\t\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.createExcerpt(item.description, item.postLink, _this.getArgs().flyout.excerpt), "\n\t\t\t\t\t\t\t"));
+                    var isNewPost = !!_this.lastPostUnixTime ? item.date > _this.lastPostUnixTime : false;
+                    var innerContent = "\n\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.timeAgo(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t<a href=\"").concat(item.postLink, "\" target=\"_blank\">\n\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t").concat(_this.RSS_View_Instance.createExcerpt(item.description, item.postLink, _this.getArgs().flyout.excerpt), "\n\t\t\t\t\t\t");
+                    flyoutInner.innerHTML += _this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost);
                 });
                 if (_this.getArgs().viewAll.link) {
                     // If we have link provided for the view all button then append a view all button at the end of the contents.
@@ -263,6 +264,14 @@ var WhatsNewRSS = /** @class */ (function () {
                  * Change focus to flyout on flyout ready.
                  */
                 flyout.focus();
+                // Set the last latest post date for notification handling.
+                _this.lastPostUnixTime = currentPostUnixTime;
+                if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
+                    _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime);
+                }
+                else {
+                    WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime);
+                }
             });
         });
         /**
@@ -427,8 +436,13 @@ var WhatsNewRSSView = /** @class */ (function () {
         flyoutWrapper.innerHTML = "\n\t\t<div class=\"whats-new-rss-flyout-contents\">\n\n\t\t\t<div class=\"whats-new-rss-flyout-inner-header\">\n\n\t\t\t\t<div class=\"whats-new-rss-flyout-inner-header__title-icon-wrapper\">\n\t\t\t\t\t<h3>".concat(this.RSS.getArgs().flyout.title, "</h3>\n\n\t\t\t\t\t<span class=\"whats-new-rss-flyout-inner-header__loading-icon\">\n\t\t\t\t\t").concat(this.RSS.getArgs().loaderIcon, "\n\t\t\t\t\t</span>\n\t\t\t\t</div>\n\n\t\t\t\t<button type=\"button\" id=\"").concat(this.getFlyoutCloseBtnID(), "\">").concat(this.RSS.getArgs().flyout.closeBtnIcon, "</button>\n\t\t\t</div>\n\n\t\t\t<div class=\"whats-new-rss-flyout-inner-content\">\n\t\t\t\t<div class=\"skeleton-container\">\n\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t\t<div class=\"skeleton-row whats-new-rss-flyout-inner-content-item\"></div>\n\t\t\t\t</div>\n\t\t\t</div>\n\n\t\t</div>\n\n\t\t<div class=\"whats-new-rss-flyout-overlay\"></div>\n\t\t");
         document.body.appendChild(flyoutWrapper);
     };
-    WhatsNewRSSView.prototype.innerContentWrapper = function (content) {
-        return "\n\t\t<div class=\"whats-new-rss-flyout-inner-content-item\">\n\t\t\t".concat(content, "\n\t\t</div>\n\t\t");
+    WhatsNewRSSView.prototype.innerContentWrapper = function (content, isNewPost) {
+        if (isNewPost === void 0) { isNewPost = false; }
+        var classes = ['whats-new-rss-flyout-inner-content-item'];
+        if (isNewPost) {
+            classes.push('rss-new-post');
+        }
+        return "\n\t\t<div class=\"".concat(classes.join(' '), "\">\n\t\t\t").concat(isNewPost ? '<small class="new-post-badge">New ✨</small>' : '', "\n\t\t\t").concat(content, "\n\t\t</div>\n\t\t");
     };
     WhatsNewRSSView.prototype.createExcerpt = function (content, readMoreLink, options) {
         var wordLimit = options.wordLimit, moreSymbol = options.moreSymbol, readMore = options.readMore;

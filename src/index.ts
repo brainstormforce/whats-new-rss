@@ -105,6 +105,11 @@ class WhatsNewRSS {
 	private RSS_View_Instance: WhatsNewRSSView;
 
 	/**
+	 * UnixTime stamp of the last seen or read post.
+	 */
+	private lastPostUnixTime = 0;
+
+	/**
 	 * Total number of new notification counts.
 	 */
 	private notificationsCount = 0;
@@ -213,9 +218,8 @@ class WhatsNewRSS {
 	/**
 	 * Checks and counts new notification for the notification badge.
 	 */
-	private async setNotificationsCount(): Promise<void> {
-
-		const lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? await this.getArgs().notification.getLastPostUnixTime(this) : WhatsNewRSSCacheUtils.getLastPostUnixTime();
+	private async setNotificationsCount() {
+		this.lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? await this.getArgs().notification.getLastPostUnixTime(this) : +WhatsNewRSSCacheUtils.getLastPostUnixTime();
 
 		this.RSS_Fetch_Instance.fetchData()
 			.then((data) => {
@@ -225,10 +229,10 @@ class WhatsNewRSS {
 
 				const currentPostUnixTime = +data[0].date;
 
-				if (currentPostUnixTime > lastPostUnixTime) {
+				if (currentPostUnixTime > this.lastPostUnixTime) {
 
 					data.forEach((item) => {
-						if (item.date > lastPostUnixTime) {
+						if (item.date > this.lastPostUnixTime) {
 							this.notificationsCount++;
 						}
 					});
@@ -281,27 +285,24 @@ class WhatsNewRSS {
 			this.RSS_Fetch_Instance.fetchData()
 				.then((data) => {
 
-					// Set the last latest post date for notification handling.
-					if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
-						this.getArgs().notification.setLastPostUnixTime(data[0].date);
-					} else {
-						WhatsNewRSSCacheUtils.setLastPostUnixTime(data[0].date);
-					}
+					const currentPostUnixTime = +data[0].date;
 
 					flyoutInner.innerHTML = '';
 
 					data.forEach((item) => {
-						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
-							`
-							<div class="rss-content-header">
-								<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
-								<a href="${item.postLink}" target="_blank">
-									<h2>${item.title}</h2>
-								</a>
-							</div>
-							${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
-							`
-						);
+
+						const isNewPost = !!this.lastPostUnixTime ? item.date > this.lastPostUnixTime : false;
+						const innerContent = `
+						<div class="rss-content-header">
+							<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
+							<a href="${item.postLink}" target="_blank">
+								<h2>${item.title}</h2>
+							</a>
+						</div>
+						${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
+						`;
+
+						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost);
 					});
 
 					if (this.getArgs().viewAll.link) {
@@ -322,6 +323,14 @@ class WhatsNewRSS {
 					 * Change focus to flyout on flyout ready.
 					 */
 					flyout.focus();
+
+					// Set the last latest post date for notification handling.
+					this.lastPostUnixTime = currentPostUnixTime;
+					if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+						this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime);
+					} else {
+						WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime);
+					}
 				});
 		});
 
@@ -395,7 +404,12 @@ class WhatsNewRSSFetch {
 
 	private response: Response;
 
-	private data = [];
+	private data: Array<{
+		title: string,
+		date: number | null,
+		postLink: string,
+		description: string,
+	}> = [];
 
 	constructor(RSS: WhatsNewRSS) {
 		this.rssFeedURL = RSS.getArgs().rssFeedURL;
@@ -554,9 +568,17 @@ class WhatsNewRSSView {
 		document.body.appendChild(flyoutWrapper);
 	}
 
-	public innerContentWrapper(content: string) {
+	public innerContentWrapper(content: string, isNewPost: boolean = false) {
+
+		const classes = ['whats-new-rss-flyout-inner-content-item'];
+
+		if (isNewPost) {
+			classes.push('rss-new-post');
+		}
+
 		return `
-		<div class="whats-new-rss-flyout-inner-content-item">
+		<div class="${classes.join(' ')}">
+			${isNewPost ? '<small class="new-post-badge">New ✨</small>' : ''}
 			${content}
 		</div>
 		`;
