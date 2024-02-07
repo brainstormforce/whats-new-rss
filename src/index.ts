@@ -157,21 +157,24 @@ class WhatsNewRSS {
 			...args,
 			viewAll: {
 				...WhatsNewRSSDefaultArgs.viewAll,
-				...args.viewAll,
+				...args?.viewAll,
 			},
 			triggerButton: {
 				...WhatsNewRSSDefaultArgs.triggerButton,
-				...args.triggerButton,
+				...args?.triggerButton,
 			},
 			flyout: {
 				...WhatsNewRSSDefaultArgs.flyout,
-				...args.flyout,
+				...args?.flyout,
 				excerpt: {
 					...WhatsNewRSSDefaultArgs.flyout.excerpt,
-					...args.flyout.excerpt,
+					...args?.flyout?.excerpt,
 				}
 			},
 		};
+
+		console.log(this.args);
+		
 	}
 
 	/**
