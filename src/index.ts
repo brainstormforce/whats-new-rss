@@ -1,6 +1,10 @@
 type ConstructorArgs = {
-	rssFeedURL: string,
-	selector: string
+	rssFeedURL: string | Array<{
+		key: string,
+		label: string,
+		url: string,
+	}>,
+	selector: string,
 	loaderIcon?: string,
 	viewAll?: {
 		link: string,
@@ -14,8 +18,8 @@ type ConstructorArgs = {
 		onClick?: ((RSS: WhatsNewRSS) => void),
 	},
 	notification?: {
-		setLastPostUnixTime?: null | ((unixTime: number) => void),
-		getLastPostUnixTime?: null | ((RSS: WhatsNewRSS) => number),
+		setLastPostUnixTime?: null | ((unixTime: number, key: string) => void),
+		getLastPostUnixTime?: null | ((key: string, RSS: WhatsNewRSS) => number),
 	}
 	flyout?: {
 		title?: string,
@@ -92,7 +96,18 @@ class WhatsNewRSS {
 	/**
 	 * HTML Element according to provided "selector".
 	 */
-	private element: HTMLElement
+	private element: HTMLElement;
+
+	/**
+	 * If current instance is for multi feed.
+	 */
+	private isMultiFeed: boolean;
+
+	private rssFeedURLs: Array<{
+		key: string,
+		label: string,
+		url: string,
+	}> = [];;
 
 	/**
 	 * RSS Fetch instance.
@@ -110,9 +125,23 @@ class WhatsNewRSS {
 	private lastPostUnixTime = 0;
 
 	/**
+	 * UnixTime stamp of the last seen or read post for multi feeds by feed key.
+	 */
+	private multiLastPostUnixTime: {
+		[key: string]: number,
+	} = {};;
+
+	/**
 	 * Total number of new notification counts.
 	 */
 	private notificationsCount = 0;
+
+	/**
+	 * Notification counts for multi feeds by feed key.
+	 */
+	private multiNotificationCount: {
+		[key: string]: number,
+	} = {};
 
 	/**
 	 * Initialize our class.
@@ -126,6 +155,11 @@ class WhatsNewRSS {
 
 		this.setID();
 
+		this.isMultiFeed = 'string' !== typeof this.getArgs().rssFeedURL;
+
+		this.setRSSFeedURLs();
+
+		WhatsNewRSSCacheUtils.setInstanceID(this.getID());
 		this.RSS_Fetch_Instance = new WhatsNewRSSFetch(this);
 		this.RSS_View_Instance = new WhatsNewRSSView(this);
 
@@ -142,6 +176,25 @@ class WhatsNewRSS {
 		["rssFeedURL", "selector"].map((requiredArg) => {
 			if (!args[requiredArg]) {
 				throw new Error(`${requiredArg} is a required argument. It cannot be empty or undefined.`);
+			}
+
+			switch (requiredArg) {
+				case 'rssFeedURL':
+					const arg = args[requiredArg];
+					if (Array.isArray(arg)) {
+						arg.forEach((rssFeedURL) => {
+							if (!rssFeedURL?.key) {
+								throw new Error(`The parameter "key" is required for "${requiredArg}" parameter in multi-feed mode.`);
+							}
+
+							if (rssFeedURL.key.includes(' ')) {
+								throw new Error(`The parameter "key" cannot have spaces for "${requiredArg}" parameter in multi-feed mode. Ref Key: "${rssFeedURL.key}"`);
+							}
+						});
+					}
+					break;
+				default:
+					break;
 			}
 		});
 	}
@@ -172,9 +225,6 @@ class WhatsNewRSS {
 				}
 			},
 		};
-
-		console.log(this.args);
-		
 	}
 
 	/**
@@ -206,7 +256,51 @@ class WhatsNewRSS {
 	 * Creates unique ID for current instance, that can be used by the library elements.
 	 */
 	private setID() {
-		this.ID = btoa(`${this.getArgs().rssFeedURL}-${this.getArgs().selector}`).replace(/=/g, '').slice(-12);
+		const data = [this.getArgs().selector];
+		const rssFeedURL = this.getArgs().rssFeedURL;
+
+		if (Array.isArray(rssFeedURL)) {
+			rssFeedURL.forEach((_rssFeedURL) => {
+				data.push(_rssFeedURL.key);
+			});
+		} else {
+			data.push(rssFeedURL);
+		}
+
+		this.ID = btoa(data.join('-')).slice(-12).replace(/=/g, '');
+	}
+
+	/**
+	 * Whether or not multiple feed urls is provided or not.
+	 * 
+	 * @returns {boolean}
+	 */
+	public isMultiFeedRSS(): boolean {
+		return this.isMultiFeed;
+	}
+
+	private setRSSFeedURLs() {
+
+		const rssFeedURL = this.getArgs().rssFeedURL;
+
+		if (!this.isMultiFeedRSS()) {
+			this.rssFeedURLs.push({
+				key: this.getID(),
+				label: '',
+				url: rssFeedURL.toString(),
+			});
+		} else {
+			if (Array.isArray(rssFeedURL)) {
+				rssFeedURL.forEach(_item => {
+					this.rssFeedURLs.push(_item);
+				});
+			}
+		}
+
+	}
+
+	public getRSSFeedURLs() {
+		return this.rssFeedURLs;
 	}
 
 	/**
@@ -222,26 +316,31 @@ class WhatsNewRSS {
 	 * Checks and counts new notification for the notification badge.
 	 */
 	private async setNotificationsCount() {
-		this.lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? await this.getArgs().notification.getLastPostUnixTime(this) : +WhatsNewRSSCacheUtils.getLastPostUnixTime();
+		this.lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? await this.getArgs().notification.getLastPostUnixTime(this.getID(), this) : +WhatsNewRSSCacheUtils.getLastPostUnixTime();
 
 		this.RSS_Fetch_Instance.fetchData()
-			.then((data) => {
-				if (!data.length) {
-					return;
-				}
+			.then((res) => {
+				Object.keys(res).forEach((key) => {
 
-				const currentPostUnixTime = +data[0].date;
+					const data = res[key];
 
-				if (currentPostUnixTime > this.lastPostUnixTime) {
+					if (!data.length) {
+						return;
+					}
 
-					data.forEach((item) => {
-						if (item.date > this.lastPostUnixTime) {
-							this.notificationsCount++;
-						}
-					});
+					const currentPostUnixTime = +data[0].date;
 
-					this.RSS_View_Instance.setNotification(this.notificationsCount);
-				}
+					if (currentPostUnixTime > this.lastPostUnixTime) {
+
+						data.forEach((item) => {
+							if (item.date > this.lastPostUnixTime) {
+								this.notificationsCount++;
+							}
+						});
+
+						this.RSS_View_Instance.setNotification(this.notificationsCount);
+					}
+				});
 			});
 
 	}
@@ -286,54 +385,64 @@ class WhatsNewRSS {
 			 * Fetch data on flyout open.
 			 */
 			this.RSS_Fetch_Instance.fetchData()
-				.then((data) => {
-
-					const currentPostUnixTime = +data[0].date;
+				.then((res) => {
 
 					flyoutInner.innerHTML = '';
 
-					data.forEach((item) => {
+					Object.keys(res).forEach((key) => {
 
-						const isNewPost = !!this.lastPostUnixTime ? item.date > this.lastPostUnixTime : false;
-						const innerContent = `
-						<div class="rss-content-header">
-							<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
-							<a href="${item.postLink}" target="_blank">
-								<h2>${item.title}</h2>
-							</a>
-						</div>
-						${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
-						`;
+						const data = res[key];
 
-						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost);
-					});
+						if (!data.length) {
+							return;
+						}
 
-					if (this.getArgs().viewAll.link) {
-						// If we have link provided for the view all button then append a view all button at the end of the contents.
-						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
+						const currentPostUnixTime = +data[0].date;
+
+						data.forEach((item) => {
+
+							const isNewPost = !!this.lastPostUnixTime ? item.date > this.lastPostUnixTime : false;
+							const innerContent = `
+								<div class="rss-content-header">
+									<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
+									<a href="${item.postLink}" target="_blank">
+										<h2>${item.title}</h2>
+									</a>
+								</div>
+								${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
+							`;
+
+							flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost);
+						});
+
+						if (this.getArgs().viewAll.link) {
+							// If we have link provided for the view all button then append a view all button at the end of the contents.
+							flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
 							`
 							<a href="${this.getArgs().viewAll.link}" class="button view-all">${this.getArgs().viewAll.label}</a>
 							`
-						)
-					}
+							)
+						}
 
-					this.RSS_View_Instance.setIsLoading(false);
+						this.RSS_View_Instance.setIsLoading(false);
 
-					flyout.classList.add('ready');
-					this.getArgs().flyout.onReady(this);
+						flyout.classList.add('ready');
+						this.getArgs().flyout.onReady(this);
 
-					/**
-					 * Change focus to flyout on flyout ready.
-					 */
-					flyout.focus();
+						/**
+						 * Change focus to flyout on flyout ready.
+						 */
+						flyout.focus();
 
-					// Set the last latest post date for notification handling.
-					this.lastPostUnixTime = currentPostUnixTime;
-					if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
-						this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime);
-					} else {
-						WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime);
-					}
+						// Set the last latest post date for notification handling.
+						this.lastPostUnixTime = currentPostUnixTime;
+						if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+							this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, this.getID());
+						} else {
+							WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime);
+						}
+					})
+
 				});
 		});
 
@@ -375,25 +484,40 @@ class WhatsNewRSS {
 
 class WhatsNewRSSCacheUtils {
 
+	static instanceID: string;
+
 	static keys = {
 		LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
 		SESSION: "whats-new-rss-session-cache-response"
 	}
 
-	static setSessionData(data: string) {
-		return window.sessionStorage.setItem(this.keys.SESSION, data);
+	static setInstanceID(instanceID: string) {
+		if (!this.instanceID) {
+			this.instanceID = instanceID;
+		}
 	}
 
-	static getSessionData() {
-		return window.sessionStorage.getItem(this.keys.SESSION);
+	private static prefixer(key: string, prefixKey = '') {
+		if (!this.instanceID) {
+			throw new Error('Instance ID not set.');
+		}
+		return !!prefixKey ? `${this.keys[key]}-${this.instanceID}-${prefixKey}` : `${this.keys[key]}-${this.instanceID}`;
 	}
 
-	static setLastPostUnixTime(unixTime: number) {
-		return window.localStorage.setItem(this.keys.LAST_LATEST_POST, unixTime.toString());
+	static setSessionData(data: string, prefixKey = '') {
+		return window.sessionStorage.setItem(this.prefixer('SESSION', prefixKey), data);
 	}
 
-	static getLastPostUnixTime() {
-		return +window.localStorage.getItem(this.keys.LAST_LATEST_POST);
+	static getSessionData(prefixKey = '') {
+		return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+	}
+
+	static setLastPostUnixTime(unixTime: number, prefixKey = '') {
+		return window.localStorage.setItem(this.prefixer('LAST_LATEST_POST', prefixKey), unixTime.toString());
+	}
+
+	static getLastPostUnixTime(prefixKey = '') {
+		return +window.localStorage.getItem(this.prefixer('LAST_LATEST_POST', prefixKey));
 	}
 }
 
@@ -403,60 +527,66 @@ class WhatsNewRSSCacheUtils {
  */
 class WhatsNewRSSFetch {
 
-	private rssFeedURL: string = '';
+	private RSS: WhatsNewRSS;
 
-	private response: Response;
-
-	private data: Array<{
-		title: string,
-		date: number | null,
-		postLink: string,
-		description: string,
-	}> = [];
+	private data: {
+		[key: string]: {
+			title: string;
+			date: number | null;
+			postLink: string;
+			description: string;
+		}[];
+	} = {};
 
 	constructor(RSS: WhatsNewRSS) {
-		this.rssFeedURL = RSS.getArgs().rssFeedURL;
+		this.RSS = RSS;
 
-		const sessionCache = JSON.parse(WhatsNewRSSCacheUtils.getSessionData());
+		this.RSS.getRSSFeedURLs().forEach((feed) => {
+			const sessionCache = JSON.parse(WhatsNewRSSCacheUtils.getSessionData(feed.key));
 
-		if (sessionCache && sessionCache.length) {
-			this.data = sessionCache;
-		}
+			if (sessionCache && sessionCache.length) {
+				this.data[feed.key] = sessionCache;
+			}
+		});
 	}
 
 	public async fetchData() {
-
-		if (this.data.length) {
+		if (Object.keys(this.data).length) {
 			return this.data;
 		}
 
-		this.response = await fetch(this.rssFeedURL);
+		this.RSS.getRSSFeedURLs().forEach(async (feed) => {
 
-		const data = await this.response.text();
+			this.data[feed.key] = [];
 
-		const _div = document.createElement('div');
+			const response = await fetch(feed.url);
 
-		_div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-link">$1</a>').replace(/\s*]]>\s*/g, '');
+			const data = await response.text();
 
-		const items = _div.querySelectorAll('item');
+			const div = document.createElement('div');
 
-		items.forEach((item) => {
+			div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
 
-			const rssDate = item.querySelector('pubDate').innerHTML;
+			const items = div.querySelectorAll('item');
 
-			this.data.push({
-				title: item.querySelector('title').innerHTML,
-				date: !!rssDate ? +new Date(rssDate) : null,
-				postLink: item.querySelector('.whats-new-rss-link').innerHTML.trim(),
-				description: item.querySelector('content\\:encoded').innerHTML,
+			items.forEach((item) => {
+
+				const rssDate = item.querySelector('pubDate').innerHTML;
+
+				this.data[feed.key].push({
+					title: item.querySelector('title').innerHTML,
+					date: !!rssDate ? +new Date(rssDate) : null,
+					postLink: item.querySelector('.whats-new-rss-post-link').innerHTML.trim(),
+					description: item.querySelector('content\\:encoded').innerHTML,
+				});
 			});
-		});
 
-		WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data));
+			WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data[feed.key]), feed.key);
+
+		});
 
 		return this.data;
 	}
-
 }
 
 /**

@@ -1,13 +1,9 @@
-/**
- * === Whats New RSS ===
- *
- * Version: 1.0.2
- * Generated on: 7th February, 2024
- * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
- */
-
 type ConstructorArgs = {
-    rssFeedURL: string;
+    rssFeedURL: string | Array<{
+        key: string;
+        label: string;
+        url: string;
+    }>;
     selector: string;
     loaderIcon?: string;
     viewAll?: {
@@ -22,8 +18,8 @@ type ConstructorArgs = {
         onClick?: ((RSS: WhatsNewRSS) => void);
     };
     notification?: {
-        setLastPostUnixTime?: null | ((unixTime: number) => void);
-        getLastPostUnixTime?: null | ((RSS: WhatsNewRSS) => number);
+        setLastPostUnixTime?: null | ((unixTime: number, key: string) => void);
+        getLastPostUnixTime?: null | ((key: string, RSS: WhatsNewRSS) => number);
     };
     flyout?: {
         title?: string;
@@ -56,6 +52,11 @@ declare class WhatsNewRSS {
      */
     private element;
     /**
+     * If current instance is for multi feed.
+     */
+    private isMultiFeed;
+    private rssFeedURLs;
+    /**
      * RSS Fetch instance.
      */
     private RSS_Fetch_Instance;
@@ -68,9 +69,17 @@ declare class WhatsNewRSS {
      */
     private lastPostUnixTime;
     /**
+     * UnixTime stamp of the last seen or read post for multi feeds by feed key.
+     */
+    private multiLastPostUnixTime;
+    /**
      * Total number of new notification counts.
      */
     private notificationsCount;
+    /**
+     * Notification counts for multi feeds by feed key.
+     */
+    private multiNotificationCount;
     /**
      * Initialize our class.
      *
@@ -110,6 +119,18 @@ declare class WhatsNewRSS {
      */
     private setID;
     /**
+     * Whether or not multiple feed urls is provided or not.
+     *
+     * @returns {boolean}
+     */
+    isMultiFeedRSS(): boolean;
+    private setRSSFeedURLs;
+    getRSSFeedURLs(): {
+        key: string;
+        label: string;
+        url: string;
+    }[];
+    /**
      * Returns the current instance unique ID.
      *
      * @returns {string}
@@ -131,30 +152,34 @@ declare class WhatsNewRSS {
     private setTriggers;
 }
 declare class WhatsNewRSSCacheUtils {
+    static instanceID: string;
     static keys: {
         LAST_LATEST_POST: string;
         SESSION: string;
     };
-    static setSessionData(data: string): void;
-    static getSessionData(): string;
-    static setLastPostUnixTime(unixTime: number): void;
-    static getLastPostUnixTime(): number;
+    static setInstanceID(instanceID: string): void;
+    private static prefixer;
+    static setSessionData(data: string, prefixKey?: string): void;
+    static getSessionData(prefixKey?: string): string;
+    static setLastPostUnixTime(unixTime: number, prefixKey?: string): void;
+    static getLastPostUnixTime(prefixKey?: string): number;
 }
 /**
  * Class for handling the data fetching.
  * It also handles the session caching of the fetched data internally.
  */
 declare class WhatsNewRSSFetch {
-    private rssFeedURL;
-    private response;
+    private RSS;
     private data;
     constructor(RSS: WhatsNewRSS);
     fetchData(): Promise<{
-        title: string;
-        date: number;
-        postLink: string;
-        description: string;
-    }[]>;
+        [key: string]: {
+            title: string;
+            date: number;
+            postLink: string;
+            description: string;
+        }[];
+    }>;
 }
 /**
  * The class for handling library trigger button and flyout elements.
