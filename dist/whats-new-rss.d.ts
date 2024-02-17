@@ -191,11 +191,12 @@ declare class WhatsNewRSSView {
     getTriggerButtonID(): string;
     getFlyoutID(): string;
     getFlyoutCloseBtnID(): string;
+    getFlyoutMultiFeedNavID(): string;
     setIsLoading(isLoading?: boolean): void;
     setNotification(notificationsCount: number | false): void;
     private createTriggerButton;
     private createFlyOut;
-    innerContentWrapper(content: string, isNewPost?: boolean): string;
+    innerContentWrapper(content: string, isNewPost?: boolean, additionalClasses?: string): string;
     createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']): string;
     timeAgo(date: Date): string;
 }

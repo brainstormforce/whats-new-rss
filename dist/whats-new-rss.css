@@ -1,11 +1,3 @@
-/**
- * === Whats New RSS ===
- *
- * Version: 1.0.2
- * Generated on: 7th February, 2024
- * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
- */
-
 .whats-new-rss-is-active {
   overflow: hidden; }
 
@@ -43,6 +35,8 @@
   box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease-in-out;
   z-index: 99999; }
+  .whats-new-rss-flyout .hidden {
+    display: none; }
   .whats-new-rss-flyout .whats-new-rss-flyout-inner-header__loading-icon {
     display: none; }
   .whats-new-rss-flyout.is-loading .whats-new-rss-flyout-inner-header__loading-icon {
@@ -75,6 +69,20 @@
       .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header .whats-new-rss-flyout-inner-header__title-icon-wrapper {
         display: flex;
         gap: 10px; }
+    .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav {
+      display: flex;
+      padding: 0px 30px;
+      border-bottom: 1px solid #ccc;
+      gap: 2em; }
+      .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav button {
+        background: none;
+        color: inherit;
+        padding: 15px 0px;
+        border-color: transparent;
+        border-bottom: 2px solid;
+        border-radius: 0; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav button.selected {
+          border-color: inherit; }
     .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content {
       flex: 1;
       overflow-y: auto; }

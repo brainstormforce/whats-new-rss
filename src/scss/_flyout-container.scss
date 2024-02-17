@@ -9,6 +9,10 @@
 	transition: transform 0.3s ease-in-out;
 	z-index: 99999;
 
+	.hidden {
+		display: none;
+	}
+
 	.whats-new-rss-flyout-inner-header__loading-icon {
 		display: none;
 	}
@@ -53,6 +57,26 @@
 				gap: 10px;
 			}
 
+		}
+
+		.whats-new-rss-multi-feed-nav {
+			display: flex;
+			padding: 0px 30px;
+			border-bottom: 1px solid #ccc;
+			gap: 2em;
+
+			button {
+				background: none;
+				color: inherit;
+				padding: 15px 0px;
+				border-color: transparent;
+				border-bottom: 2px solid;
+				border-radius: 0;
+
+				&.selected {
+					border-color: inherit;
+				}
+			}
 		}
 
 		.whats-new-rss-flyout-inner-content {

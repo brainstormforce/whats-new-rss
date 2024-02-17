@@ -363,6 +363,36 @@ class WhatsNewRSS {
 		const flyout = document.getElementById(this.RSS_View_Instance.getFlyoutID());
 		const flyoutInner = flyout.querySelector('.whats-new-rss-flyout-inner-content');
 		const flyoutCloseBtn = document.getElementById(this.RSS_View_Instance.getFlyoutCloseBtnID());
+		
+		if (this.isMultiFeedRSS()) {
+			const multiFeedNav = document.getElementById(this.RSS_View_Instance.getFlyoutMultiFeedNavID());
+			const navBtns = multiFeedNav.querySelectorAll('button');
+
+			navBtns.forEach((navBtn, index) => {
+
+				if (0 !== index) navBtn.classList.add('selected');
+
+				navBtn.addEventListener('click', function () {
+					const currentFeedKey = this.dataset.feedKey;
+
+					navBtns.forEach(navBtn => {
+
+						const feedKey = navBtn.dataset.feedKey;
+						const innerContentClassName = `.inner-content-item-feed-key-${feedKey}`;
+
+						navBtn.classList.toggle('selected');
+
+						document.querySelectorAll(innerContentClassName).forEach(item => {
+							if (currentFeedKey !== feedKey) {
+								item.classList.add('hidden');
+							} else {
+								item.classList.remove('hidden');
+							}
+						});
+					});
+				});
+			});
+		}
 
 		/**
 		 * Open flyout on trigger button click.
@@ -389,7 +419,7 @@ class WhatsNewRSS {
 
 					flyoutInner.innerHTML = '';
 
-					Object.keys(res).forEach((key) => {
+					Object.keys(res).forEach((key, index) => {
 
 						const data = res[key];
 
@@ -412,13 +442,13 @@ class WhatsNewRSS {
 								${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
 							`;
 
-							flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost);
+							flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost, `inner-content-item-feed-key-${key} ${(this.isMultiFeedRSS() && index) ? 'hidden' : ''}`);
 						});
 
 						if (this.getArgs().viewAll.link) {
 							// If we have link provided for the view all button then append a view all button at the end of the contents.
 							flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
-							`
+								`
 							<a href="${this.getArgs().viewAll.link}" class="button view-all">${this.getArgs().viewAll.label}</a>
 							`
 							)
@@ -551,28 +581,24 @@ class WhatsNewRSSFetch {
 	}
 
 	public async fetchData() {
+
 		if (Object.keys(this.data).length) {
 			return this.data;
 		}
 
-		this.RSS.getRSSFeedURLs().forEach(async (feed) => {
-
+		const fetchPromises = this.RSS.getRSSFeedURLs().map(async (feed) => {
 			this.data[feed.key] = [];
 
-			const response = await fetch(feed.url);
-
-			const data = await response.text();
+			const res = await fetch(feed.url);
+			const data = await res.text();
 
 			const div = document.createElement('div');
-
 			div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
 
 			const items = div.querySelectorAll('item');
 
 			items.forEach((item) => {
-
 				const rssDate = item.querySelector('pubDate').innerHTML;
-
 				this.data[feed.key].push({
 					title: item.querySelector('title').innerHTML,
 					date: !!rssDate ? +new Date(rssDate) : null,
@@ -582,8 +608,9 @@ class WhatsNewRSSFetch {
 			});
 
 			WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data[feed.key]), feed.key);
-
 		});
+
+		await Promise.all(fetchPromises);
 
 		return this.data;
 	}
@@ -614,6 +641,10 @@ class WhatsNewRSSView {
 
 	public getFlyoutCloseBtnID() {
 		return `whats-new-rss-flyout-close-${this.RSS.getID()}`;
+	}
+
+	public getFlyoutMultiFeedNavID() {
+		return `whats-new-rss-flyout-multi-feed-nav-${this.RSS.getID()}`;
 	}
 
 	public setIsLoading(isLoading = false) {
@@ -664,6 +695,20 @@ class WhatsNewRSSView {
 			wrapperClasses.push(this.RSS.getArgs().flyout.className);
 		}
 
+		let multiFeedNav = [];
+
+		if (this.RSS.isMultiFeedRSS()) {
+			multiFeedNav.push(`<nav id="${this.getFlyoutMultiFeedNavID()}" class="whats-new-rss-multi-feed-nav">`);
+
+			this.RSS.getRSSFeedURLs().forEach((feed) => {
+				multiFeedNav.push(
+					`<button type="button" data-feed-key="${feed.key}">${feed.label}</button>`
+				);
+			});
+
+			multiFeedNav.push('</nav>');
+		}
+
 		const flyoutWrapper = document.createElement('div');
 		flyoutWrapper.setAttribute('id', this.getFlyoutID());
 		flyoutWrapper.setAttribute('class', wrapperClasses.join(' '));
@@ -685,6 +730,8 @@ class WhatsNewRSSView {
 				<button type="button" id="${this.getFlyoutCloseBtnID()}">${this.RSS.getArgs().flyout.closeBtnIcon}</button>
 			</div>
 
+			${multiFeedNav.join('')}
+
 			<div class="whats-new-rss-flyout-inner-content">
 				<div class="skeleton-container">
 					<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
@@ -701,12 +748,16 @@ class WhatsNewRSSView {
 		document.body.appendChild(flyoutWrapper);
 	}
 
-	public innerContentWrapper(content: string, isNewPost: boolean = false) {
+	public innerContentWrapper(content: string, isNewPost: boolean = false, additionalClasses = '') {
 
 		const classes = ['whats-new-rss-flyout-inner-content-item'];
 
 		if (isNewPost) {
 			classes.push('rss-new-post');
+		}
+
+		if (!!additionalClasses) {
+			classes.push(additionalClasses);
 		}
 
 		return `
