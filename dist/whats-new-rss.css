@@ -1,3 +1,11 @@
+/**
+ * === Whats New RSS ===
+ *
+ * Version: 1.0.2
+ * Generated on: 21st February, 2024
+ * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
+ */
+
 .whats-new-rss-is-active {
   overflow: hidden; }
 
@@ -20,6 +28,12 @@
     color: #fff;
     background: red;
     transition: transform 0.2s ease-in-out; }
+    .whats-new-rss-trigger-button .whats-new-rss-notification-badge.is-multi-feed {
+      top: -2px;
+      right: -2px;
+      font-size: 0px;
+      width: 10px;
+      height: 10px; }
     .whats-new-rss-trigger-button .whats-new-rss-notification-badge.hide {
       display: none; }
   .whats-new-rss-trigger-button:hover .whats-new-rss-notification-badge {
@@ -65,24 +79,42 @@
         border: none;
         font-size: 30px;
         cursor: pointer;
-        color: #94A3B8; }
+        color: #94A3B8;
+        transition: transform 0.2s ease-in-out; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header button:hover, .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header button:focus {
+          transform: scale(1.5); }
       .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header .whats-new-rss-flyout-inner-header__title-icon-wrapper {
         display: flex;
         gap: 10px; }
     .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav {
       display: flex;
       padding: 0px 30px;
-      border-bottom: 1px solid #ccc;
-      gap: 2em; }
+      border-bottom: 1px solid #cccccc;
+      gap: 2em;
+      overflow: auto;
+      white-space: nowrap; }
       .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav button {
+        position: relative;
         background: none;
         color: inherit;
         padding: 15px 0px;
-        border-color: transparent;
-        border-bottom: 2px solid;
+        border-bottom: 2px solid transparent;
         border-radius: 0; }
-        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav button.selected {
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav button:hover, .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav button:focus {
           border-color: inherit; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav button.selected {
+          border-color: #5d5d5d; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav button .new-notification-count {
+          position: absolute;
+          top: 0px;
+          right: -10px;
+          width: 20px;
+          font-size: 10px;
+          line-height: 20px;
+          text-align: center;
+          border-radius: 10px;
+          color: #fff;
+          background: red; }
     .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content {
       flex: 1;
       overflow-y: auto; }

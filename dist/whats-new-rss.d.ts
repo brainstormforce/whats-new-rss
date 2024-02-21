@@ -1,3 +1,11 @@
+/**
+ * === Whats New RSS ===
+ *
+ * Version: 1.0.2
+ * Generated on: 21st February, 2024
+ * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
+ */
+
 type ConstructorArgs = {
     rssFeedURL: string | Array<{
         key: string;
@@ -51,10 +59,6 @@ declare class WhatsNewRSS {
      * HTML Element according to provided "selector".
      */
     private element;
-    /**
-     * If current instance is for multi feed.
-     */
-    private isMultiFeed;
     private rssFeedURLs;
     /**
      * RSS Fetch instance.
@@ -196,6 +200,7 @@ declare class WhatsNewRSSView {
     setNotification(notificationsCount: number | false): void;
     private createTriggerButton;
     private createFlyOut;
+    setMultiFeedTabNotificationCount(key: string, notificationCount?: number): void;
     innerContentWrapper(content: string, isNewPost?: boolean, additionalClasses?: string): string;
     createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']): string;
     timeAgo(date: Date): string;
