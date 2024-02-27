@@ -48,7 +48,7 @@ The library expects a specific HTML structure. Ensure your container element has
 
 The `WhatsNewRSS` class accepts the following configuration options:
 
-- `rssFeedURL` (string, required): URL of the RSS feed.
+- `rssFeedURL` (string | Array, required): URL of the RSS feed.
 - `selector` (string, required): CSS selector for the container where the library will be rendered.
 - `loaderIcon` (string, optional): SVG code for the loader icon.
 - `viewAll` (object, optional): Configuration for the "View All" button.
@@ -66,11 +66,11 @@ The `WhatsNewRSS` class accepts the following configuration options:
 - `flyout` (object, optional): Configuration for the flyout.
   - `title` (string, optional): Title of the flyout.
   - `excerpt` (object, optional): Configuration for the excerpt.
-	- `wordLimit` (number | null, optional): Total length of the content to keep after trimming. Default is `500 words`. Provide `null` to disable excerpt.
-	- `moreSymbol` (string, optional): Symbol to append after excerpt. Default: `&hellip;`: &hellip;
-	- `readMore` (object | optional): Configuration for the excerpt read more link.
-		- `label` (string | optional): Read more link label.
-		- `className` (string | optional): Additional class read more link.
+  - `wordLimit` (number | null, optional): Total length of the content to keep after trimming. Default is `500 words`. Provide `null` to disable excerpt.
+  - `moreSymbol` (string, optional): Symbol to append after excerpt. Default: `&hellip;`: &hellip;
+  - `readMore` (object | optional): Configuration for the excerpt read more link.
+    - `label` (string | optional): Read more link label.
+    - `className` (string | optional): Additional class read more link.
   - `className` (string, optional): Additional CSS class for the flyout.
   - `closeBtnIcon` (string, optional): SVG code for the close button icon.
   - `closeOnEsc` (boolean, optional): Close the flyout on ESC key press.
@@ -96,6 +96,34 @@ The `WhatsNewRSS` class provides the following methods:
 const rss = new WhatsNewRSS({
   rssFeedURL: 'YOUR_RSS_FEED_URL',
   selector: '#whats-new-container',
+});
+```
+
+### Multi Feed Example
+In multi-feed mode, you will pass `rssFeedURL` as an Array of objects, with properties:
+```
+{
+	key: [string] (Required): Unique key for current feed tab,
+	label: [string] (Required): Title for the current feed tab,
+	url: [string] (Required): Feed url,
+}
+```
+
+```JS
+const rss = new WhatsNewRSS({
+	rssFeedURL: [
+		{
+			key: "astra-theme",
+			label: "Astra Theme",
+			url: "https://wpastra.com/product/astra-theme/feed",
+		},
+		{
+			key: "astra-pro",
+			label: "Astra Pro",
+			url: "https://wpastra.com/product/astra-pro-addon/feed",
+		}
+	],
+	selector: '#whats-new-container',
 });
 ```
 
