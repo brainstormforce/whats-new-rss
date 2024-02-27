@@ -1,6 +1,10 @@
 type ConstructorArgs = {
-	rssFeedURL: string,
-	selector: string
+	rssFeedURL: string | Array<{
+		key: string,
+		label: string,
+		url: string,
+	}>,
+	selector: string,
 	loaderIcon?: string,
 	viewAll?: {
 		link: string,
@@ -14,11 +18,19 @@ type ConstructorArgs = {
 		onClick?: ((RSS: WhatsNewRSS) => void),
 	},
 	notification?: {
-		setLastPostUnixTime?: null | ((unixTime: number) => void),
-		getLastPostUnixTime?: null | ((RSS: WhatsNewRSS) => number),
+		setLastPostUnixTime?: null | ((unixTime: number, key: string) => void),
+		getLastPostUnixTime?: null | ((key: string, RSS: WhatsNewRSS) => number),
 	}
 	flyout?: {
 		title?: string,
+		excerpt?: {
+			wordLimit?: null | number,
+			moreSymbol?: string,
+			readMore?: {
+				label?: string,
+				className?: string,
+			}
+		},
 		className?: string,
 		closeBtnIcon?: string,
 		closeOnEsc?: boolean,
@@ -54,6 +66,14 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 	},
 	flyout: {
 		title: "What's New?",
+		excerpt: {
+			wordLimit: 500,
+			moreSymbol: '&hellip;',
+			readMore: {
+				label: 'Read More',
+				className: '',
+			}
+		},
 		className: '',
 		closeOnEsc: true,
 		closeOnOverlayClick: true,
@@ -76,7 +96,13 @@ class WhatsNewRSS {
 	/**
 	 * HTML Element according to provided "selector".
 	 */
-	private element: HTMLElement
+	private element: HTMLElement;
+
+	private rssFeedURLs: Array<{
+		key: string,
+		label: string,
+		url: string,
+	}> = [];;
 
 	/**
 	 * RSS Fetch instance.
@@ -89,9 +115,28 @@ class WhatsNewRSS {
 	private RSS_View_Instance: WhatsNewRSSView;
 
 	/**
+	 * UnixTime stamp of the last seen or read post.
+	 */
+	private lastPostUnixTime = 0;
+
+	/**
+	 * UnixTime stamp of the last seen or read post for multi feeds by feed key.
+	 */
+	private multiLastPostUnixTime: {
+		[key: string]: number,
+	} = {};
+
+	/**
 	 * Total number of new notification counts.
 	 */
 	private notificationsCount = 0;
+
+	/**
+	 * Notification counts for multi feeds by feed key.
+	 */
+	private multiNotificationCount: {
+		[key: string]: number,
+	} = {};
 
 	/**
 	 * Initialize our class.
@@ -105,6 +150,9 @@ class WhatsNewRSS {
 
 		this.setID();
 
+		this.setRSSFeedURLs();
+
+		WhatsNewRSSCacheUtils.setInstanceID(this.getID());
 		this.RSS_Fetch_Instance = new WhatsNewRSSFetch(this);
 		this.RSS_View_Instance = new WhatsNewRSSView(this);
 
@@ -122,6 +170,25 @@ class WhatsNewRSS {
 			if (!args[requiredArg]) {
 				throw new Error(`${requiredArg} is a required argument. It cannot be empty or undefined.`);
 			}
+
+			switch (requiredArg) {
+				case 'rssFeedURL':
+					const arg = args[requiredArg];
+					if (Array.isArray(arg)) {
+						arg.forEach((rssFeedURL) => {
+							if (!rssFeedURL?.key) {
+								throw new Error(`The parameter "key" is required for "${requiredArg}" parameter in multi-feed mode.`);
+							}
+
+							if (rssFeedURL.key.includes(' ')) {
+								throw new Error(`The parameter "key" cannot have spaces for "${requiredArg}" parameter in multi-feed mode. Ref Key: "${rssFeedURL.key}"`);
+							}
+						});
+					}
+					break;
+				default:
+					break;
+			}
 		});
 	}
 
@@ -136,15 +203,19 @@ class WhatsNewRSS {
 			...args,
 			viewAll: {
 				...WhatsNewRSSDefaultArgs.viewAll,
-				...args.viewAll,
+				...args?.viewAll,
 			},
 			triggerButton: {
 				...WhatsNewRSSDefaultArgs.triggerButton,
-				...args.triggerButton,
+				...args?.triggerButton,
 			},
 			flyout: {
 				...WhatsNewRSSDefaultArgs.flyout,
-				...args.flyout,
+				...args?.flyout,
+				excerpt: {
+					...WhatsNewRSSDefaultArgs.flyout.excerpt,
+					...args?.flyout?.excerpt,
+				}
 			},
 		};
 	}
@@ -178,7 +249,51 @@ class WhatsNewRSS {
 	 * Creates unique ID for current instance, that can be used by the library elements.
 	 */
 	private setID() {
-		this.ID = btoa(`${this.getArgs().rssFeedURL}-${this.getArgs().selector}`).replace(/=/g, '').slice(-12);
+		const data = [this.getArgs().selector];
+		const rssFeedURL = this.getArgs().rssFeedURL;
+
+		if (Array.isArray(rssFeedURL)) {
+			rssFeedURL.forEach((_rssFeedURL) => {
+				data.push(_rssFeedURL.key);
+			});
+		} else {
+			data.push(rssFeedURL);
+		}
+
+		this.ID = btoa(data.join('-')).slice(-12).replace(/=/g, '');
+	}
+
+	/**
+	 * Whether or not multiple feed urls is provided or not.
+	 *
+	 * @returns {boolean}
+	 */
+	public isMultiFeedRSS(): boolean {
+		return 'string' !== typeof this.getArgs().rssFeedURL;
+	}
+
+	private setRSSFeedURLs() {
+
+		const rssFeedURL = this.getArgs().rssFeedURL;
+
+		if (!this.isMultiFeedRSS()) {
+			this.rssFeedURLs.push({
+				key: null,
+				label: '',
+				url: rssFeedURL.toString(),
+			});
+		} else {
+			if (Array.isArray(rssFeedURL)) {
+				rssFeedURL.forEach(_item => {
+					this.rssFeedURLs.push(_item);
+				});
+			}
+		}
+
+	}
+
+	public getRSSFeedURLs() {
+		return this.rssFeedURLs;
 	}
 
 	/**
@@ -193,28 +308,57 @@ class WhatsNewRSS {
 	/**
 	 * Checks and counts new notification for the notification badge.
 	 */
-	private async setNotificationsCount(): Promise<void> {
+	private async setNotificationsCount() {
+		await Promise.all(
+			this.getRSSFeedURLs().map(async ({ key }) => {
+				let lastPostUnixTime = 0;
 
-		const lastPostUnixTime = ('function' === typeof this.getArgs().notification.getLastPostUnixTime) ? await this.getArgs().notification.getLastPostUnixTime(this) : WhatsNewRSSCacheUtils.getLastPostUnixTime();
-
-		this.RSS_Fetch_Instance.fetchData()
-			.then((data) => {
-				if (!data.length) {
-					return;
+				if (('function' === typeof this.getArgs().notification.getLastPostUnixTime)) {
+					lastPostUnixTime = await this.getArgs().notification.getLastPostUnixTime(key, this);
+				} else {
+					lastPostUnixTime = WhatsNewRSSCacheUtils.getLastPostUnixTime(key);
 				}
 
-				const currentPostUnixTime = +data[0].date;
-
-				if (currentPostUnixTime > lastPostUnixTime) {
-
-					data.forEach((item) => {
-						if (item.date > lastPostUnixTime) {
-							this.notificationsCount++;
-						}
-					});
-
-					this.RSS_View_Instance.setNotification(this.notificationsCount);
+				if (this.isMultiFeedRSS()) {
+					this.multiLastPostUnixTime[key] = +lastPostUnixTime;
+				} else {
+					this.lastPostUnixTime = +lastPostUnixTime;
 				}
+			})
+		)
+
+		await this.RSS_Fetch_Instance.fetchData()
+			.then((res) => {
+				Object.keys(res).forEach((key) => {
+
+					const data = res[key];
+
+					if (!data.length) {
+						return;
+					}
+
+					this.multiNotificationCount[key] = 0;
+
+					const currentPostUnixTime = +data[0].date;
+					const lastPostUnixTime = this.isMultiFeedRSS() ? this.multiLastPostUnixTime[key] : this.lastPostUnixTime;
+
+					if (currentPostUnixTime > lastPostUnixTime) {
+						data.forEach((item) => {
+							if (item.date > lastPostUnixTime) {
+								if (this.isMultiFeedRSS()) {
+									this.multiNotificationCount[key]++;
+								}
+
+								/**
+								 * Keep a record of total notifications even in multi-feed mode.
+								 */
+								this.notificationsCount++;
+							}
+						});
+
+						this.RSS_View_Instance.setNotification(this.notificationsCount);
+					}
+				});
 			});
 
 	}
@@ -237,48 +381,45 @@ class WhatsNewRSS {
 		const flyout = document.getElementById(this.RSS_View_Instance.getFlyoutID());
 		const flyoutInner = flyout.querySelector('.whats-new-rss-flyout-inner-content');
 		const flyoutCloseBtn = document.getElementById(this.RSS_View_Instance.getFlyoutCloseBtnID());
+		const multiFeedNav = document.getElementById(this.RSS_View_Instance.getFlyoutMultiFeedNavID());
 
-		/**
-		 * Open flyout on trigger button click.
-		 * Flyout has three states: `closed | open | ready`
-		 */
-		triggerButton.addEventListener("click", (e) => {
-			e.preventDefault();
-
-			this.getArgs().triggerButton.onClick(this);
-
-			this.RSS_View_Instance.setIsLoading(true);
-
-			flyout.classList.remove('closed');
-			flyout.classList.add('open');
-			document.body.classList.add('whats-new-rss-is-active');
-
-			this.getArgs().flyout.onOpen(this);
+		const injectContents = (key: string | null) => {
 
 			/**
 			 * Fetch data on flyout open.
 			 */
 			this.RSS_Fetch_Instance.fetchData()
-				.then((data) => {
-
-					// Set the last latest post date for notification handling.
-					if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
-						this.getArgs().notification.setLastPostUnixTime(data[0].date);
-					} else {
-						WhatsNewRSSCacheUtils.setLastPostUnixTime(data[0].date);
-					}
+				.then((res) => {
 
 					flyoutInner.innerHTML = '';
 
+					const data = res[key];
+
+					if (!data.length) {
+						return;
+					}
+
+					const currentPostUnixTime = +data[0].date;
+					const lastPostUnixTime = this.isMultiFeedRSS() ? this.multiLastPostUnixTime[key] : this.lastPostUnixTime;
+
 					data.forEach((item) => {
+
+						const isNewPost = !!lastPostUnixTime ? item.date > lastPostUnixTime : false;
+
+						const innerContent = `
+								<div class="rss-content-header">
+									<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
+									<a href="${item.postLink}" target="_blank">
+										<h2>${item.title}</h2>
+									</a>
+								</div>
+								${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
+							`;
+
 						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
-							`
-							<div class="rss-content-header">
-								<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
-								<h2>${item.title}</h2>
-							</div>
-							${item.description}
-							`
+							innerContent,
+							isNewPost,
+							`inner-content-item-feed-key-${key}`
 						);
 					});
 
@@ -300,7 +441,91 @@ class WhatsNewRSS {
 					 * Change focus to flyout on flyout ready.
 					 */
 					flyout.focus();
+
+					// Set the last latest post date for notification handling.
+					if (!this.isMultiFeedRSS()) {
+						this.lastPostUnixTime = currentPostUnixTime;
+						if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+							this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
+						} else {
+							WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+						}
+					}
+
 				});
+
+		}
+
+		/**
+		 * Open flyout on trigger button click.
+		 * Flyout has three states: `closed | open | ready`
+		 */
+		triggerButton.addEventListener("click", (e) => {
+			e.preventDefault();
+
+			this.getArgs().triggerButton.onClick(this);
+
+			this.RSS_View_Instance.setIsLoading(true);
+
+			flyout.classList.remove('closed');
+			flyout.classList.add('open');
+			document.body.classList.add('whats-new-rss-is-active');
+
+			this.getArgs().flyout.onOpen(this);
+
+			if (!this.isMultiFeedRSS()) {
+				return injectContents(null);
+			}
+
+			const navBtns = multiFeedNav.querySelectorAll('button');
+
+			navBtns.forEach((navBtn) => {
+
+				this.RSS_View_Instance.setMultiFeedTabNotificationCount(navBtn.dataset.feedKey, this.multiNotificationCount[navBtn.dataset.feedKey]);
+
+				navBtn.addEventListener('click', (e) => {
+
+					e.preventDefault();
+
+					const currentFeedKey = navBtn.dataset.feedKey;
+
+					this.multiNotificationCount[currentFeedKey] = 0;
+
+					this.RSS_Fetch_Instance.fetchData()
+						.then((res) => {
+							const currentPostUnixTime = res[currentFeedKey][0].date;
+
+							this.multiLastPostUnixTime[currentFeedKey] = currentPostUnixTime;
+							if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+								this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+							} else {
+								WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+							}
+						});
+
+					navBtns.forEach(navBtn => {
+
+						navBtn.classList.remove('selected');
+
+						const feedKey = navBtn.dataset.feedKey;
+						const innerContentClassName = `.inner-content-item-feed-key-${feedKey}`;
+
+						document.querySelectorAll(innerContentClassName).forEach(item => {
+							if (currentFeedKey !== feedKey) {
+								item.classList.add('hidden');
+							} else {
+								item.classList.remove('hidden');
+							}
+						});
+					});
+
+					navBtn.classList.add('selected');
+
+					injectContents(currentFeedKey);
+				});
+			});
+
+			navBtns[0].click();
 		});
 
 		/**
@@ -311,7 +536,12 @@ class WhatsNewRSS {
 			flyout.classList.remove('open');
 			flyout.classList.remove('ready');
 			document.body.classList.remove('whats-new-rss-is-active');
-			this.RSS_View_Instance.setNotification(false);
+
+			if (this.isMultiFeedRSS()) {
+				this.RSS_View_Instance.setNotification(Object.values(this.multiNotificationCount).filter(Boolean).length);
+			} else {
+				this.RSS_View_Instance.setNotification(false);
+			}
 
 			flyoutInner.innerHTML = '';
 
@@ -341,25 +571,40 @@ class WhatsNewRSS {
 
 class WhatsNewRSSCacheUtils {
 
+	static instanceID: string;
+
 	static keys = {
 		LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
 		SESSION: "whats-new-rss-session-cache-response"
 	}
 
-	static setSessionData(data: string) {
-		return window.sessionStorage.setItem(this.keys.SESSION, data);
+	static setInstanceID(instanceID: string) {
+		if (!this.instanceID) {
+			this.instanceID = instanceID;
+		}
 	}
 
-	static getSessionData() {
-		return window.sessionStorage.getItem(this.keys.SESSION);
+	private static prefixer(key: string, prefixKey = '') {
+		if (!this.instanceID) {
+			throw new Error('Instance ID not set.');
+		}
+		return !!prefixKey ? `${this.keys[key]}-${this.instanceID}-${prefixKey}` : `${this.keys[key]}-${this.instanceID}`;
 	}
 
-	static setLastPostUnixTime(unixTime: number) {
-		return window.localStorage.setItem(this.keys.LAST_LATEST_POST, unixTime.toString());
+	static setSessionData(data: string, prefixKey = '') {
+		return window.sessionStorage.setItem(this.prefixer('SESSION', prefixKey), data);
 	}
 
-	static getLastPostUnixTime() {
-		return +window.localStorage.getItem(this.keys.LAST_LATEST_POST);
+	static getSessionData(prefixKey = '') {
+		return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+	}
+
+	static setLastPostUnixTime(unixTime: number, prefixKey = '') {
+		return window.localStorage.setItem(this.prefixer('LAST_LATEST_POST', prefixKey), unixTime.toString());
+	}
+
+	static getLastPostUnixTime(prefixKey = '') {
+		return +window.localStorage.getItem(this.prefixer('LAST_LATEST_POST', prefixKey));
 	}
 }
 
@@ -369,54 +614,63 @@ class WhatsNewRSSCacheUtils {
  */
 class WhatsNewRSSFetch {
 
-	private rssFeedURL: string = '';
+	private RSS: WhatsNewRSS;
 
-	private response: Response;
-
-	private data = [];
+	private data: {
+		[key: string]: {
+			title: string;
+			date: number | null;
+			postLink: string;
+			description: string;
+		}[];
+	} = {};
 
 	constructor(RSS: WhatsNewRSS) {
-		this.rssFeedURL = RSS.getArgs().rssFeedURL;
+		this.RSS = RSS;
 
-		const sessionCache = JSON.parse(WhatsNewRSSCacheUtils.getSessionData());
+		this.RSS.getRSSFeedURLs().forEach((feed) => {
+			const sessionCache = JSON.parse(WhatsNewRSSCacheUtils.getSessionData(feed.key));
 
-		if (sessionCache && sessionCache.length) {
-			this.data = sessionCache;
-		}
+			if (sessionCache && sessionCache.length) {
+				this.data[feed.key] = sessionCache;
+			}
+		});
 	}
 
 	public async fetchData() {
 
-		if (this.data.length) {
+		if (Object.keys(this.data).length) {
 			return this.data;
 		}
 
-		this.response = await fetch(this.rssFeedURL);
+		const fetchPromises = this.RSS.getRSSFeedURLs().map(async (feed) => {
+			this.data[feed.key] = [];
 
-		const data = await this.response.text();
+			const res = await fetch(feed.url);
+			const data = await res.text();
 
-		const _div = document.createElement('div');
+			const div = document.createElement('div');
+			div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
 
-		_div.innerHTML = data.replace(/\s*]]>\s*/g, '');
+			const items = div.querySelectorAll('item');
 
-		const items = _div.querySelectorAll('item');
-
-		items.forEach((item) => {
-
-			const rssDate = item.querySelector('pubDate').innerHTML;
-
-			this.data.push({
-				title: item.querySelector('title').innerHTML,
-				date: !!rssDate ? +new Date(rssDate) : null,
-				description: item.querySelector('content\\:encoded').innerHTML,
+			items.forEach((item) => {
+				const rssDate = item.querySelector('pubDate').innerHTML;
+				this.data[feed.key].push({
+					title: item.querySelector('title').innerHTML,
+					date: !!rssDate ? +new Date(rssDate) : null,
+					postLink: item.querySelector('.whats-new-rss-post-link').innerHTML.trim(),
+					description: item.querySelector('content\\:encoded').innerHTML,
+				});
 			});
+
+			WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data[feed.key]), feed.key);
 		});
 
-		WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data));
+		await Promise.all(fetchPromises);
 
 		return this.data;
 	}
-
 }
 
 /**
@@ -446,6 +700,10 @@ class WhatsNewRSSView {
 		return `whats-new-rss-flyout-close-${this.RSS.getID()}`;
 	}
 
+	public getFlyoutMultiFeedNavID() {
+		return `whats-new-rss-flyout-multi-feed-nav-${this.RSS.getID()}`;
+	}
+
 	public setIsLoading(isLoading = false) {
 
 		const flyoutWrapper = document.getElementById(this.getFlyoutID());
@@ -462,7 +720,12 @@ class WhatsNewRSSView {
 		const notificationBadge = document.querySelector(`#${this.getTriggerButtonID()} .whats-new-rss-notification-badge`);
 
 		if (!!notificationsCount) {
-			notificationBadge.innerHTML = notificationsCount > 9 ? "9+" : notificationsCount.toString();
+			if (this.RSS.isMultiFeedRSS()) {
+				notificationBadge.innerHTML = '';
+				notificationBadge.classList.add('is-multi-feed');
+			} else {
+				notificationBadge.innerHTML = notificationsCount > 9 ? "9+" : notificationsCount.toString();
+			}
 			notificationBadge.classList.remove('hide');
 		} else {
 			notificationBadge.classList.add('hide');
@@ -494,47 +757,126 @@ class WhatsNewRSSView {
 			wrapperClasses.push(this.RSS.getArgs().flyout.className);
 		}
 
-		let flyout = `
-		<div class="${wrapperClasses.join(' ')}" id="${this.getFlyoutID()}" role="dialog">
+		let multiFeedNav = [];
 
-			<div class="whats-new-rss-flyout-contents">
+		if (this.RSS.isMultiFeedRSS()) {
+			multiFeedNav.push(`<nav id="${this.getFlyoutMultiFeedNavID()}" class="whats-new-rss-multi-feed-nav">`);
 
-				<div class="whats-new-rss-flyout-inner-header">
+			this.RSS.getRSSFeedURLs().forEach((feed) => {
+				multiFeedNav.push(
+					`<button type="button" data-feed-key="${feed.key}">
+						${feed.label}
+						<div class="new-notification-count"></div>
+					</button>
+					`
+				);
+			});
 
-					<div class="whats-new-rss-flyout-inner-header__title-icon-wrapper">
-						<h3>${this.RSS.getArgs().flyout.title}</h3>
+			multiFeedNav.push('</nav>');
+		}
 
-						<span class="whats-new-rss-flyout-inner-header__loading-icon">
-						${this.RSS.getArgs().loaderIcon}
-						</span>
-					</div>
+		const flyoutWrapper = document.createElement('div');
+		flyoutWrapper.setAttribute('id', this.getFlyoutID());
+		flyoutWrapper.setAttribute('class', wrapperClasses.join(' '));
+		flyoutWrapper.setAttribute('role', 'dialog');
 
-					<button type="button" id="${this.getFlyoutCloseBtnID()}">${this.RSS.getArgs().flyout.closeBtnIcon}</button>
+		flyoutWrapper.innerHTML = `
+		<div class="whats-new-rss-flyout-contents">
+
+			<div class="whats-new-rss-flyout-inner-header">
+
+				<div class="whats-new-rss-flyout-inner-header__title-icon-wrapper">
+					<h3>${this.RSS.getArgs().flyout.title}</h3>
+
+					<span class="whats-new-rss-flyout-inner-header__loading-icon">
+					${this.RSS.getArgs().loaderIcon}
+					</span>
 				</div>
 
-				<div class="whats-new-rss-flyout-inner-content">
-					<div class="skeleton-container">
-						<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
-						<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
-						<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
-					</div>
-				</div>
-
+				<button type="button" id="${this.getFlyoutCloseBtnID()}">${this.RSS.getArgs().flyout.closeBtnIcon}</button>
 			</div>
 
-			<div class="whats-new-rss-flyout-overlay"></div>
+			${multiFeedNav.join('')}
+
+			<div class="whats-new-rss-flyout-inner-content">
+				<div class="skeleton-container">
+					<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
+					<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
+					<div class="skeleton-row whats-new-rss-flyout-inner-content-item"></div>
+				</div>
+			</div>
+
 		</div>
+
+		<div class="whats-new-rss-flyout-overlay"></div>
 		`;
 
-		document.body.innerHTML += flyout;
+		document.body.appendChild(flyoutWrapper);
 	}
 
-	public innerContentWrapper(content: string) {
+	public setMultiFeedTabNotificationCount(key: string, notificationCount: number = 0) {
+
+		const tabBtn = document.querySelector(`#${this.getFlyoutMultiFeedNavID()} button[data-feed-key="${key}"]`);
+
+		if (!tabBtn) {
+			return;
+		}
+
+		const el = tabBtn.querySelector('.new-notification-count');
+
+		if (notificationCount) {
+			const _count = notificationCount > 9 ? '9+' : notificationCount;
+			el.innerHTML = _count.toString();
+		} else {
+			el.innerHTML = '';
+		}
+	}
+
+	public innerContentWrapper(content: string, isNewPost: boolean = false, additionalClasses = '') {
+
+		const classes = ['whats-new-rss-flyout-inner-content-item'];
+
+		if (isNewPost) {
+			classes.push('rss-new-post');
+		}
+
+		if (!!additionalClasses) {
+			classes.push(additionalClasses);
+		}
+
 		return `
-		<div class="whats-new-rss-flyout-inner-content-item">
+		<div class="${classes.join(' ')}">
+			${isNewPost ? '<small class="new-post-badge">New ✨</small>' : ''}
 			${content}
 		</div>
 		`;
+	}
+
+	public createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']) {
+
+		const { wordLimit, moreSymbol, readMore } = options;
+
+		if (!wordLimit) {
+			return content;
+		}
+
+		const plainText = content.replace(/<[^>]*>/g, '');
+		const words = plainText.split(/\s+/);
+		let rawExcerpt = words.slice(0, wordLimit).join(' ');
+
+		if (moreSymbol) {
+			rawExcerpt += moreSymbol;
+		}
+
+		if (wordLimit > words.length) {
+			return content;
+		}
+
+		if (!!readMoreLink && !!readMore?.label) {
+			return `<p>${rawExcerpt} <a href="${readMoreLink}" target="_blank" class="${readMore.className}">${readMore.label}</a></p>`;
+		}
+
+		return `<p>${rawExcerpt}</p>`;
 	}
 
 	public timeAgo(date: Date) {

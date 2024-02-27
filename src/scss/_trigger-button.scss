@@ -19,6 +19,14 @@
         background: red;
         transition: transform 0.2s ease-in-out;
 
+        &.is-multi-feed {
+            top: -2px;
+            right: -2px;
+            font-size: 0px;
+            width: 10px;
+            height: 10px;
+        }
+
         &.hide {
             display: none;
         }
