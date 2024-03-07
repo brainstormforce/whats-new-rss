@@ -235,3 +235,27 @@ const rss = new WhatsNewRSS({
 
 console.log(rss);
 ```
+
+### Displaying children posts [Display nested sub-versions]
+Suppose, if this is your provided RSS Feed URL: `http://whats-new-rss-nested.local/product/astra-pro-addon/feed/` then you need to add below **PHP code** snippet in your WordPress site: `http://whats-new-rss-nested.local`.
+
+By default, WordPress RSS Feeds does not supports children posts in its XML Feed data.
+
+The, PHP code provided below appends children posts of the current parent post in the XML Feed. After that, the WhatsNewRSS library checks for the `<children>` custom tag in the feed URL, and then it will extract the JSON data from the `<children>` custom tag
+
+Things to consider:
+- Sub Version only works if the `<children>` custom tag is provided.
+- The inner content of the `<children>` custom tag must be an array of WP_POST `WP_Post[]` and should be json encoded like in the snippet below.
+
+```PHP
+add_action('rss2_item', function() {
+	global $post;
+
+	$children_posts = get_children( $post->ID );
+
+	if ( $children_posts ) {
+		echo '<children>' . htmlspecialchars( json_encode( $children_posts ), ENT_QUOTES, 'UTF-8' ) . '</children>';
+	}
+
+});
+```

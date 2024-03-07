@@ -170,6 +170,37 @@
 			}
 		}
 
+		.whats-new-rss-sub-version-details {
+			border: 1px dashed;
+			line-height: 20px;
+			font-size: 0.9em;
+			border-radius: 6px;
+			margin: 10px 0;
+
+			summary {
+				cursor: pointer;
+				padding: 10px 15px;
+
+				&::marker {
+					margin-right: 5px;
+				}
+			}
+
+			.sub-version-item {
+				position: relative;
+				padding: 0 2em;
+
+				.sub-version-header {
+					display: flex;
+					justify-content: space-between;
+				}
+
+				.sub-version-content {
+					margin-top: 1em;
+				}
+			}
+		}
+
 	}
 
 	.whats-new-rss-flyout-overlay {

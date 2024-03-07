@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 27th February, 2024
+ * Generated on: 7th March, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -182,6 +182,7 @@ declare class WhatsNewRSSFetch {
             date: number;
             postLink: string;
             description: string;
+            children: object;
         }[];
     }>;
 }
@@ -203,5 +204,6 @@ declare class WhatsNewRSSView {
     setMultiFeedTabNotificationCount(key: string, notificationCount?: number): void;
     innerContentWrapper(content: string, isNewPost?: boolean, additionalClasses?: string): string;
     createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']): string;
-    timeAgo(date: Date): string;
+    listChildrenPosts(children: object): string;
+    formatDate(date: Date): string;
 }

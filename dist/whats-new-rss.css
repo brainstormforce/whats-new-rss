@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 27th February, 2024
+ * Generated on: 7th March, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -156,6 +156,25 @@
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item video {
           vertical-align: middle;
           width: 100%; }
+    .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details {
+      border: 1px dashed;
+      line-height: 20px;
+      font-size: 0.9em;
+      border-radius: 6px;
+      margin: 10px 0; }
+      .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details summary {
+        cursor: pointer;
+        padding: 10px 15px; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details summary::marker {
+          margin-right: 5px; }
+      .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details .sub-version-item {
+        position: relative;
+        padding: 0 2em; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details .sub-version-item .sub-version-header {
+          display: flex;
+          justify-content: space-between; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details .sub-version-item .sub-version-content {
+          margin-top: 1em; }
   .whats-new-rss-flyout .whats-new-rss-flyout-overlay {
     position: fixed;
     top: 0;

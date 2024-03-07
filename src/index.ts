@@ -408,11 +408,12 @@ class WhatsNewRSS {
 
 						const innerContent = `
 								<div class="rss-content-header">
-									<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
+									<p>${this.RSS_View_Instance.formatDate(new Date(item.date))}</p>
 									<a href="${item.postLink}" target="_blank">
 										<h2>${item.title}</h2>
 									</a>
 								</div>
+								${this.RSS_View_Instance.listChildrenPosts(item.children)}
 								${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
 							`;
 
@@ -622,6 +623,7 @@ class WhatsNewRSSFetch {
 			date: number | null;
 			postLink: string;
 			description: string;
+			children: object;
 		}[];
 	} = {};
 
@@ -653,7 +655,6 @@ class WhatsNewRSSFetch {
 			div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
 
 			const items = div.querySelectorAll('item');
-
 			items.forEach((item) => {
 				const rssDate = item.querySelector('pubDate').innerHTML;
 				this.data[feed.key].push({
@@ -661,9 +662,9 @@ class WhatsNewRSSFetch {
 					date: !!rssDate ? +new Date(rssDate) : null,
 					postLink: item.querySelector('.whats-new-rss-post-link').innerHTML.trim(),
 					description: item.querySelector('content\\:encoded').innerHTML,
+					children: JSON.parse(item.querySelector('children')?.innerHTML || '{}')
 				});
 			});
-
 			WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data[feed.key]), feed.key);
 		});
 
@@ -879,7 +880,46 @@ class WhatsNewRSSView {
 		return `<p>${rawExcerpt}</p>`;
 	}
 
-	public timeAgo(date: Date) {
+	public listChildrenPosts(children: object) {
+		const _children = Object.values(children);
+
+		if (!_children.length) {
+			return '';
+		}
+
+		const details = document.createElement('details');
+		const summary = document.createElement('summary');
+		const itemsWrapper = document.createElement('div');
+
+		_children.forEach((child) => {
+			const postContentDoc = new DOMParser().parseFromString(child.post_content, 'text/html');
+
+			const itemDiv = document.createElement('div');
+			itemDiv.classList.add('sub-version-item');
+
+			itemDiv.innerHTML = `
+				<div class="sub-version-header">
+					<h4 class="sub-version-title">${child.post_title}</h4>
+					<span class="sub-version-date">${this.formatDate(new Date(child.post_date))}</span>
+				</div>
+				<div class="sub-version-content">${postContentDoc.documentElement.textContent}</div>
+			`;
+
+			itemsWrapper.appendChild(itemDiv);
+		});
+
+		summary.textContent = 'See Sub Versions';
+
+		details.appendChild(summary);
+		details.appendChild(itemsWrapper);
+
+		itemsWrapper.classList.add('sub-version-items-wrapper');
+		details.classList.add('whats-new-rss-sub-version-details');
+
+		return details.outerHTML;
+	}
+
+	public formatDate(date: Date) {
 		const currentDate = new Date();
 		const timestamp = date.getTime();
 		const currentTimestamp = currentDate.getTime();

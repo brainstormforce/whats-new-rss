@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 27th February, 2024
+ * Generated on: 7th March, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -344,7 +344,7 @@ var WhatsNewRSS = /** @class */ (function () {
                 var lastPostUnixTime = _this.isMultiFeedRSS() ? _this.multiLastPostUnixTime[key] : _this.lastPostUnixTime;
                 data.forEach(function (item) {
                     var isNewPost = !!lastPostUnixTime ? item.date > lastPostUnixTime : false;
-                    var innerContent = "\n\t\t\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.timeAgo(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t\t\t<a href=\"").concat(item.postLink, "\" target=\"_blank\">\n\t\t\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.createExcerpt(item.description, item.postLink, _this.getArgs().flyout.excerpt), "\n\t\t\t\t\t\t\t");
+                    var innerContent = "\n\t\t\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.formatDate(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t\t\t<a href=\"").concat(item.postLink, "\" target=\"_blank\">\n\t\t\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.listChildrenPosts(item.children), "\n\t\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.createExcerpt(item.description, item.postLink, _this.getArgs().flyout.excerpt), "\n\t\t\t\t\t\t\t");
                     flyoutInner.innerHTML += _this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost, "inner-content-item-feed-key-".concat(key));
                 });
                 if (_this.getArgs().viewAll.link) {
@@ -539,12 +539,14 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                                         div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
                                         items = div.querySelectorAll('item');
                                         items.forEach(function (item) {
+                                            var _a;
                                             var rssDate = item.querySelector('pubDate').innerHTML;
                                             _this.data[feed.key].push({
                                                 title: item.querySelector('title').innerHTML,
                                                 date: !!rssDate ? +new Date(rssDate) : null,
                                                 postLink: item.querySelector('.whats-new-rss-post-link').innerHTML.trim(),
                                                 description: item.querySelector('content\\:encoded').innerHTML,
+                                                children: JSON.parse(((_a = item.querySelector('children')) === null || _a === void 0 ? void 0 : _a.innerHTML) || '{}')
                                             });
                                         });
                                         WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data[feed.key]), feed.key);
@@ -683,7 +685,30 @@ var WhatsNewRSSView = /** @class */ (function () {
         }
         return "<p>".concat(rawExcerpt, "</p>");
     };
-    WhatsNewRSSView.prototype.timeAgo = function (date) {
+    WhatsNewRSSView.prototype.listChildrenPosts = function (children) {
+        var _this = this;
+        var _children = Object.values(children);
+        if (!_children.length) {
+            return '';
+        }
+        var details = document.createElement('details');
+        var summary = document.createElement('summary');
+        var itemsWrapper = document.createElement('div');
+        _children.forEach(function (child) {
+            var postContentDoc = new DOMParser().parseFromString(child.post_content, 'text/html');
+            var itemDiv = document.createElement('div');
+            itemDiv.classList.add('sub-version-item');
+            itemDiv.innerHTML = "\n\t\t\t\t<div class=\"sub-version-header\">\n\t\t\t\t\t<h4 class=\"sub-version-title\">".concat(child.post_title, "</h4>\n\t\t\t\t\t<span class=\"sub-version-date\">").concat(_this.formatDate(new Date(child.post_date)), "</span>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"sub-version-content\">").concat(postContentDoc.documentElement.textContent, "</div>\n\t\t\t");
+            itemsWrapper.appendChild(itemDiv);
+        });
+        summary.textContent = 'See Sub Versions';
+        details.appendChild(summary);
+        details.appendChild(itemsWrapper);
+        itemsWrapper.classList.add('sub-version-items-wrapper');
+        details.classList.add('whats-new-rss-sub-version-details');
+        return details.outerHTML;
+    };
+    WhatsNewRSSView.prototype.formatDate = function (date) {
         var currentDate = new Date();
         var timestamp = date.getTime();
         var currentTimestamp = currentDate.getTime();
