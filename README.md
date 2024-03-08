@@ -75,6 +75,7 @@ The `WhatsNewRSS` class accepts the following configuration options:
   - `closeBtnIcon` (string, optional): SVG code for the close button icon.
   - `closeOnEsc` (boolean, optional): Close the flyout on ESC key press.
   - `closeOnOverlayClick` (boolean, optional): Close the flyout on overlay click.
+  - `formatDate` (function, optional): Function to format date according to custom needs. Provides "Date" object as argument Must return string.
   - `onOpen` (function, optional): Function to be executed on flyout open.
   - `onClose` (function, optional): Function to be executed on flyout close.
   - `onReady` (function, optional): Function to be executed on flyout ready.

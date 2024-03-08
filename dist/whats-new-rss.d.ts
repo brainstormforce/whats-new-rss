@@ -1,3 +1,11 @@
+/**
+ * === Whats New RSS ===
+ *
+ * Version: 1.0.3
+ * Generated on: 8th March, 2024
+ * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
+ */
+
 type ConstructorArgs = {
     rssFeedURL: string | Array<{
         key: string;
@@ -38,6 +46,7 @@ type ConstructorArgs = {
         onOpen?: ((RSS: WhatsNewRSS) => void);
         onClose?: ((RSS: WhatsNewRSS) => void);
         onReady?: ((RSS: WhatsNewRSS) => void);
+        formatDate?: null | ((date: Date) => string);
     };
 };
 declare const WhatsNewRSSDefaultArgs: ConstructorArgs;

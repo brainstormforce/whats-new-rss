@@ -1,3 +1,11 @@
+/**
+ * === Whats New RSS ===
+ *
+ * Version: 1.0.3
+ * Generated on: 8th March, 2024
+ * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
+ */
+
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -78,9 +86,10 @@ var WhatsNewRSSDefaultArgs = {
         closeOnEsc: true,
         closeOnOverlayClick: true,
         closeBtnIcon: "<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M6 18L18 6M6 6L18 18\" stroke=\"#94A3B8\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+        formatDate: null,
         onOpen: function () { },
         onClose: function () { },
-        onReady: function () { }
+        onReady: function () { },
     }
 };
 var WhatsNewRSS = /** @class */ (function () {
@@ -700,6 +709,9 @@ var WhatsNewRSSView = /** @class */ (function () {
         return details.outerHTML;
     };
     WhatsNewRSSView.prototype.formatDate = function (date) {
+        if ('function' === typeof this.RSS.getArgs().flyout.formatDate) {
+            return this.RSS.getArgs().flyout.formatDate(date);
+        }
         var currentDate = new Date();
         var timestamp = date.getTime();
         var currentTimestamp = currentDate.getTime();
@@ -738,4 +750,3 @@ var WhatsNewRSSView = /** @class */ (function () {
     };
     return WhatsNewRSSView;
 }());
-//# sourceMappingURL=whats-new-rss.js.map
