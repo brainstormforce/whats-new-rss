@@ -1,11 +1,3 @@
-/**
- * === Whats New RSS ===
- *
- * Version: 1.0.2
- * Generated on: 7th March, 2024
- * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
- */
-
 type ConstructorArgs = {
     rssFeedURL: string | Array<{
         key: string;

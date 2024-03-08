@@ -881,11 +881,10 @@ class WhatsNewRSSView {
 	}
 
 	public listChildrenPosts(children: object) {
-		const _children = Object.values(children);
 
-		if (!_children.length) {
-			return '';
-		}
+		if (!children) return '';
+
+		const _children = Object.values(children);
 
 		const details = document.createElement('details');
 		const summary = document.createElement('summary');
