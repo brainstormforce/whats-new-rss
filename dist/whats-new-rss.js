@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.3
- * Generated on: 8th March, 2024
+ * Generated on: 14th March, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -688,9 +688,9 @@ var WhatsNewRSSView = /** @class */ (function () {
     };
     WhatsNewRSSView.prototype.listChildrenPosts = function (children) {
         var _this = this;
-        if (!children)
-            return '';
         var _children = Object.values(children);
+        if (!_children.length)
+            return '';
         var details = document.createElement('details');
         var summary = document.createElement('summary');
         var itemsWrapper = document.createElement('div');
