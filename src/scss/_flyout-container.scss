@@ -178,11 +178,26 @@
 			margin: 10px 0;
 
 			summary {
+				display: flex;
+				justify-content: space-between;
 				cursor: pointer;
 				padding: 10px 15px;
+				height: 1em;
+				line-height: 20px;
 
-				&::marker {
-					margin-right: 5px;
+				&::after {
+					content: '⌃';
+					font-size: 20px;
+					transform: rotateX(180deg);
+					font-weight: 800;
+				}
+			}
+
+			&[open] {
+				summary {
+					&::after {
+						transform: rotateX(45deg);
+					}
 				}
 			}
 
