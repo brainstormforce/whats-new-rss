@@ -415,14 +415,14 @@ class WhatsNewRSS {
 										<h2>${item.title}</h2>
 									</a>
 								</div>
-								${this.RSS_View_Instance.listChildrenPosts(item.children)}
 								${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
+								${this.RSS_View_Instance.listChildrenPosts(item.children)}
 							`;
 
 						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
 							innerContent,
 							isNewPost,
-							`inner-content-item-feed-key-${key}`
+							!!key ? `inner-content-item-feed-key-${key}` : ''
 						);
 					});
 
@@ -909,7 +909,7 @@ class WhatsNewRSSView {
 			itemsWrapper.appendChild(itemDiv);
 		});
 
-		summary.textContent = 'See Sub Versions';
+		summary.innerHTML = '<p class="text-see-more">See More</p><p class="text-see-less">See Less</p>';
 
 		details.appendChild(summary);
 		details.appendChild(itemsWrapper);

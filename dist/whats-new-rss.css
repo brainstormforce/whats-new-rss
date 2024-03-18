@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.3
- * Generated on: 15th March, 2024
+ * Generated on: 18th March, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -158,28 +158,39 @@
           vertical-align: middle;
           width: 100%; }
     .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details {
-      border: 1px dashed;
       line-height: 20px;
       font-size: 0.9em;
-      border-radius: 6px;
-      margin: 10px 0; }
+      margin: 10px 0;
+      background: #F9FAFB; }
       .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details summary {
         display: flex;
         justify-content: space-between;
         cursor: pointer;
-        padding: 10px 15px;
+        padding: 20px 15px;
         height: 1em;
-        line-height: 20px; }
+        line-height: 20px;
+        font-weight: 800; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details summary::after {
           content: '⌃';
           font-size: 20px;
           transform: rotateX(180deg);
           font-weight: 800; }
-      .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details[open] summary::after {
-        transform: rotateX(45deg); }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details summary .text-see-more {
+          display: block; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details summary .text-see-less {
+          display: none; }
+      .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details[open] summary {
+        border-bottom: 1px solid #E2E8F0; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details[open] summary::after {
+          transform: rotateX(45deg); }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details[open] summary .text-see-more {
+          display: none; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details[open] summary .text-see-less {
+          display: block; }
       .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details .sub-version-item {
         position: relative;
-        padding: 0 2em; }
+        padding: 1em;
+        border-bottom: 1px solid #E2E8F0; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details .sub-version-item .sub-version-header {
           display: flex;
           justify-content: space-between; }

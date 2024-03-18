@@ -171,19 +171,19 @@
 		}
 
 		.whats-new-rss-sub-version-details {
-			border: 1px dashed;
 			line-height: 20px;
 			font-size: 0.9em;
-			border-radius: 6px;
 			margin: 10px 0;
+			background: #F9FAFB;
 
 			summary {
 				display: flex;
 				justify-content: space-between;
 				cursor: pointer;
-				padding: 10px 15px;
+				padding: 20px 15px;
 				height: 1em;
 				line-height: 20px;
+				font-weight: 800;
 
 				&::after {
 					content: '⌃';
@@ -191,19 +191,38 @@
 					transform: rotateX(180deg);
 					font-weight: 800;
 				}
+
+				.text-see-more {
+					display: block;
+				}
+
+				.text-see-less {
+					display: none;
+				}
 			}
 
 			&[open] {
 				summary {
+					border-bottom: 1px solid #E2E8F0;
+
 					&::after {
 						transform: rotateX(45deg);
+					}
+
+					.text-see-more {
+						display: none;
+					}
+
+					.text-see-less {
+						display: block;
 					}
 				}
 			}
 
 			.sub-version-item {
 				position: relative;
-				padding: 0 2em;
+				padding: 1em;
+				border-bottom: 1px solid #E2E8F0;
 
 				.sub-version-header {
 					display: flex;
