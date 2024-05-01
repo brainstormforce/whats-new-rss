@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf dist && tsc --sourceMap false && gulp sass:minify && gulp uglify && gulp headers",
+    "build": "rm -rf dist && tsc --sourceMap false && gulp sass:minify && gulp uglify && gulp copyHooks && gulp headers",
     "start": "gulp sass:watch | tsc --watch"
   },
   "devDependencies": {

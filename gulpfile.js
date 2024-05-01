@@ -37,8 +37,14 @@ function handleFileHeaders() {
 		`)).pipe(gulp.dest('dist/'))
 }
 
+function copyHooks() {
+	return gulp.src('src/hooks/*.js')
+    .pipe(gulp.dest('dist/hooks/'));
+}
+
 gulp.task('sass', handleScssBuild);
 gulp.task('sass:minify', handleMinifyCSS);
 gulp.task('sass:watch', () => gulp.watch("src/scss/**/*.scss", handleScssBuild));
+gulp.task('copyHooks', copyHooks);
 gulp.task('uglify', handleUglifyJS);
 gulp.task('headers', handleFileHeaders);
