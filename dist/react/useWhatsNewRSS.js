@@ -6,6 +6,8 @@
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
+import { useEffect } from "react";
+import "./whats-new-rss.css";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -750,3 +752,14 @@ var WhatsNewRSSView = /** @class */ (function () {
     };
     return WhatsNewRSSView;
 }());
+
+
+function useWhatsNewRSS(args) {
+	let wnr = null;
+	useEffect(() => {
+		if (!wnr) {
+			wnr = new WhatsNewRSS(args);
+		}
+	}, [args])
+}
+export default useWhatsNewRSS;
