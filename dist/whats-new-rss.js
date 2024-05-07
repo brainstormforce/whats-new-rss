@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 27th February, 2024
+ * Generated on: 7th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -523,7 +523,7 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                             return [2 /*return*/, this.data];
                         }
                         fetchPromises = this.RSS.getRSSFeedURLs().map(function (feed) { return __awaiter(_this, void 0, void 0, function () {
-                            var res, data, div, items;
+                            var res, data, parser, xmlDoc, items;
                             var _this = this;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
@@ -535,16 +535,25 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                                         return [4 /*yield*/, res.text()];
                                     case 2:
                                         data = _a.sent();
-                                        div = document.createElement('div');
-                                        div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
-                                        items = div.querySelectorAll('item');
+                                        /**
+                                         * There was an issue with the xml content parse
+                                         * And during parse we were getting "<parsererror>" because of the ‘raquo’ entity.
+                                         */
+                                        data = data.replace(/&raquo;/g, '&amp;raquo;');
+                                        parser = new DOMParser();
+                                        xmlDoc = parser.parseFromString(data, 'text/xml');
+                                        items = xmlDoc.querySelectorAll('item');
                                         items.forEach(function (item) {
+                                            var title = item.querySelector('title').textContent;
+                                            var link = item.querySelector('link').textContent;
+                                            var contentEncoded = item.querySelector('content\\:encoded, encoded');
+                                            var content = contentEncoded ? contentEncoded.textContent : '';
                                             var rssDate = item.querySelector('pubDate').innerHTML;
                                             _this.data[feed.key].push({
-                                                title: item.querySelector('title').innerHTML,
+                                                title: title,
                                                 date: !!rssDate ? +new Date(rssDate) : null,
-                                                postLink: item.querySelector('.whats-new-rss-post-link').innerHTML.trim(),
-                                                description: item.querySelector('content\\:encoded').innerHTML,
+                                                postLink: link,
+                                                description: content,
                                             });
                                         });
                                         WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data[feed.key]), feed.key);

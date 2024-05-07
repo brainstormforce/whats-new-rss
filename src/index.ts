@@ -647,20 +647,32 @@ class WhatsNewRSSFetch {
 			this.data[feed.key] = [];
 
 			const res = await fetch(feed.url);
-			const data = await res.text();
+			let data = await res.text();
 
-			const div = document.createElement('div');
-			div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
+			/**
+			 * There was an issue with the xml content parse
+			 * And during parse we were getting "<parsererror>" because of the ‘raquo’ entity.
+			 */
+			data = data.replace(/&raquo;/g, '&amp;raquo;');
 
-			const items = div.querySelectorAll('item');
+			const parser = new DOMParser();
+			const xmlDoc = parser.parseFromString(data, 'text/xml');
 
-			items.forEach((item) => {
+			const items = xmlDoc.querySelectorAll('item');
+
+			items.forEach(item => {
+
+				const title = item.querySelector('title').textContent;
+				const link = item.querySelector('link').textContent;
+				const contentEncoded = item.querySelector('content\\:encoded, encoded');
+                const content = contentEncoded ? contentEncoded.textContent : '';
 				const rssDate = item.querySelector('pubDate').innerHTML;
+
 				this.data[feed.key].push({
-					title: item.querySelector('title').innerHTML,
+					title: title,
 					date: !!rssDate ? +new Date(rssDate) : null,
-					postLink: item.querySelector('.whats-new-rss-post-link').innerHTML.trim(),
-					description: item.querySelector('content\\:encoded').innerHTML,
+					postLink: link,
+					description: content,
 				});
 			});
 
