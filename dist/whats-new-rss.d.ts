@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 7th May, 2024
+ * Generated on: 8th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -158,11 +158,14 @@ declare class WhatsNewRSS {
 declare class WhatsNewRSSCacheUtils {
     static instanceID: string;
     static keys: {
+        SESSION_DATA_EXPIRY: string;
         LAST_LATEST_POST: string;
         SESSION: string;
     };
     static setInstanceID(instanceID: string): void;
     private static prefixer;
+    private static _setDataExpiry;
+    private static _isDataExpired;
     static setSessionData(data: string, prefixKey?: string): void;
     static getSessionData(prefixKey?: string): string;
     static setLastPostUnixTime(unixTime: number, prefixKey?: string): void;

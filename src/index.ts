@@ -574,6 +574,7 @@ class WhatsNewRSSCacheUtils {
 	static instanceID: string;
 
 	static keys = {
+		SESSION_DATA_EXPIRY: "whats-new-rss-session-data-expiry",
 		LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
 		SESSION: "whats-new-rss-session-cache-response"
 	}
@@ -591,12 +592,45 @@ class WhatsNewRSSCacheUtils {
 		return !!prefixKey ? `${this.keys[key]}-${this.instanceID}-${prefixKey}` : `${this.keys[key]}-${this.instanceID}`;
 	}
 
+	private static _setDataExpiry(prefixKey = '') {
+
+		const expiryInSeconds = 86400; // Defaults to 24 hours.
+
+		const now = new Date();
+		const expiry = now.getTime() + (expiryInSeconds * 1000);
+		sessionStorage.setItem(this.prefixer('SESSION_DATA_EXPIRY', prefixKey), JSON.stringify(expiry));
+	}
+
+	private static _isDataExpired(prefixKey = '') {
+		const key = this.prefixer('SESSION_DATA_EXPIRY', prefixKey);
+		const value = window.sessionStorage.getItem(key);
+
+		if (!value) {
+			return true;
+		}
+
+		const expiry = JSON.parse(value);
+		const now = new Date();
+
+		if (now.getTime() > expiry) {
+			window.sessionStorage.removeItem(key);
+			return true;
+		}
+
+		return false;
+	}
+
 	static setSessionData(data: string, prefixKey = '') {
+		this._setDataExpiry(prefixKey);
 		return window.sessionStorage.setItem(this.prefixer('SESSION', prefixKey), data);
 	}
 
 	static getSessionData(prefixKey = '') {
-		return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+		if (!this._isDataExpired(prefixKey)) {
+			return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+		}
+
+		return '{}';
 	}
 
 	static setLastPostUnixTime(unixTime: number, prefixKey = '') {
@@ -665,7 +699,7 @@ class WhatsNewRSSFetch {
 				const title = item.querySelector('title').textContent;
 				const link = item.querySelector('link').textContent;
 				const contentEncoded = item.querySelector('content\\:encoded, encoded');
-                const content = contentEncoded ? contentEncoded.textContent : '';
+				const content = contentEncoded ? contentEncoded.textContent : '';
 				const rssDate = item.querySelector('pubDate').innerHTML;
 
 				this.data[feed.key].push({

@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 7th May, 2024
+ * Generated on: 8th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -474,13 +474,39 @@ var WhatsNewRSSCacheUtils = /** @class */ (function () {
         }
         return !!prefixKey ? "".concat(this.keys[key], "-").concat(this.instanceID, "-").concat(prefixKey) : "".concat(this.keys[key], "-").concat(this.instanceID);
     };
+    WhatsNewRSSCacheUtils._setDataExpiry = function (prefixKey) {
+        if (prefixKey === void 0) { prefixKey = ''; }
+        var expiryInSeconds = 86400; // Defaults to 24 hours.
+        var now = new Date();
+        var expiry = now.getTime() + (expiryInSeconds * 1000);
+        sessionStorage.setItem(this.prefixer('SESSION_DATA_EXPIRY', prefixKey), JSON.stringify(expiry));
+    };
+    WhatsNewRSSCacheUtils._isDataExpired = function (prefixKey) {
+        if (prefixKey === void 0) { prefixKey = ''; }
+        var key = this.prefixer('SESSION_DATA_EXPIRY', prefixKey);
+        var value = window.sessionStorage.getItem(key);
+        if (!value) {
+            return true;
+        }
+        var expiry = JSON.parse(value);
+        var now = new Date();
+        if (now.getTime() > expiry) {
+            window.sessionStorage.removeItem(key);
+            return true;
+        }
+        return false;
+    };
     WhatsNewRSSCacheUtils.setSessionData = function (data, prefixKey) {
         if (prefixKey === void 0) { prefixKey = ''; }
+        this._setDataExpiry(prefixKey);
         return window.sessionStorage.setItem(this.prefixer('SESSION', prefixKey), data);
     };
     WhatsNewRSSCacheUtils.getSessionData = function (prefixKey) {
         if (prefixKey === void 0) { prefixKey = ''; }
-        return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+        if (!this._isDataExpired(prefixKey)) {
+            return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+        }
+        return '{}';
     };
     WhatsNewRSSCacheUtils.setLastPostUnixTime = function (unixTime, prefixKey) {
         if (prefixKey === void 0) { prefixKey = ''; }
@@ -491,6 +517,7 @@ var WhatsNewRSSCacheUtils = /** @class */ (function () {
         return +window.localStorage.getItem(this.prefixer('LAST_LATEST_POST', prefixKey));
     };
     WhatsNewRSSCacheUtils.keys = {
+        SESSION_DATA_EXPIRY: "whats-new-rss-session-data-expiry",
         LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
         SESSION: "whats-new-rss-session-cache-response"
     };
