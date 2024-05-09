@@ -1,7 +1,7 @@
 /**
  * === Whats New RSS ===
  *
- * Version: 1.0.2
+ * Version: 1.0.3
  * Generated on: 9th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
