@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 8th May, 2024
+ * Generated on: 9th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -115,6 +115,14 @@ var WhatsNewRSS = /** @class */ (function () {
          * Notification counts for multi feeds by feed key.
          */
         this.multiNotificationCount = {};
+        /**
+         * Check if has new feeds.
+         */
+        this.hasNewFeeds = false;
+        /**
+         * Check if has new feeds in multi feeds mode.
+         */
+        this.multiHasNewFeeds = {};
         this.validateArgs(args);
         this.parseDefaults(args);
         this.setElement();
@@ -293,11 +301,11 @@ var WhatsNewRSS = /** @class */ (function () {
                                             if (item.date > lastPostUnixTime) {
                                                 if (_this.isMultiFeedRSS()) {
                                                     _this.multiNotificationCount[key]++;
+                                                    _this.multiHasNewFeeds[key] = true;
                                                 }
-                                                /**
-                                                 * Keep a record of total notifications even in multi-feed mode.
-                                                 */
+                                                // Keep a record of total notifications even in multi-feed mode.
                                                 _this.notificationsCount++;
+                                                _this.hasNewFeeds = true;
                                             }
                                         });
                                         _this.RSS_View_Instance.setNotification(_this.notificationsCount);
@@ -361,11 +369,13 @@ var WhatsNewRSS = /** @class */ (function () {
                 // Set the last latest post date for notification handling.
                 if (!_this.isMultiFeedRSS()) {
                     _this.lastPostUnixTime = currentPostUnixTime;
-                    if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
-                        _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
-                    }
-                    else {
-                        WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+                    if (_this.hasNewFeeds) {
+                        if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
+                            _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
+                        }
+                        else {
+                            WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+                        }
                     }
                 }
             });
@@ -396,12 +406,15 @@ var WhatsNewRSS = /** @class */ (function () {
                         .then(function (res) {
                         var currentPostUnixTime = res[currentFeedKey][0].date;
                         _this.multiLastPostUnixTime[currentFeedKey] = currentPostUnixTime;
-                        if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
-                            _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+                        if (true === _this.multiHasNewFeeds[currentFeedKey]) {
+                            if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
+                                _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+                            }
+                            else {
+                                WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+                            }
                         }
-                        else {
-                            WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
-                        }
+                        _this.multiHasNewFeeds[currentFeedKey] = false;
                     });
                     navBtns.forEach(function (navBtn) {
                         navBtn.classList.remove('selected');
@@ -434,6 +447,7 @@ var WhatsNewRSS = /** @class */ (function () {
                 _this.RSS_View_Instance.setNotification(Object.values(_this.multiNotificationCount).filter(Boolean).length);
             }
             else {
+                _this.hasNewFeeds = false;
                 _this.RSS_View_Instance.setNotification(false);
             }
             flyoutInner.innerHTML = '';
@@ -517,9 +531,9 @@ var WhatsNewRSSCacheUtils = /** @class */ (function () {
         return +window.localStorage.getItem(this.prefixer('LAST_LATEST_POST', prefixKey));
     };
     WhatsNewRSSCacheUtils.keys = {
-        SESSION_DATA_EXPIRY: "whats-new-rss-session-data-expiry",
-        LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
-        SESSION: "whats-new-rss-session-cache-response"
+        SESSION_DATA_EXPIRY: "whats-new-cache-expiry",
+        LAST_LATEST_POST: "whats-new-last-unixtime",
+        SESSION: "whats-new-cache"
     };
     return WhatsNewRSSCacheUtils;
 }());

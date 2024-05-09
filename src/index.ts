@@ -139,6 +139,18 @@ class WhatsNewRSS {
 	} = {};
 
 	/**
+	 * Check if has new feeds.
+	 */
+	private hasNewFeeds = false;
+
+	/**
+	 * Check if has new feeds in multi feeds mode.
+	 */
+	private multiHasNewFeeds: {
+		[key: string]: boolean,
+	} = {};
+
+	/**
 	 * Initialize our class.
 	 *
 	 * @param {ConstructorArgs} args
@@ -347,12 +359,12 @@ class WhatsNewRSS {
 							if (item.date > lastPostUnixTime) {
 								if (this.isMultiFeedRSS()) {
 									this.multiNotificationCount[key]++;
+									this.multiHasNewFeeds[key] = true;
 								}
 
-								/**
-								 * Keep a record of total notifications even in multi-feed mode.
-								 */
+								// Keep a record of total notifications even in multi-feed mode.
 								this.notificationsCount++;
+								this.hasNewFeeds = true;
 							}
 						});
 
@@ -445,10 +457,13 @@ class WhatsNewRSS {
 					// Set the last latest post date for notification handling.
 					if (!this.isMultiFeedRSS()) {
 						this.lastPostUnixTime = currentPostUnixTime;
-						if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
-							this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
-						} else {
-							WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+
+						if (this.hasNewFeeds) {
+							if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+								this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
+							} else {
+								WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+							}
 						}
 					}
 
@@ -496,11 +511,16 @@ class WhatsNewRSS {
 							const currentPostUnixTime = res[currentFeedKey][0].date;
 
 							this.multiLastPostUnixTime[currentFeedKey] = currentPostUnixTime;
-							if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
-								this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
-							} else {
-								WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+
+							if (true === this.multiHasNewFeeds[currentFeedKey]) {
+								if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+									this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+								} else {
+									WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+								}
 							}
+
+							this.multiHasNewFeeds[currentFeedKey] = false;
 						});
 
 					navBtns.forEach(navBtn => {
@@ -540,6 +560,7 @@ class WhatsNewRSS {
 			if (this.isMultiFeedRSS()) {
 				this.RSS_View_Instance.setNotification(Object.values(this.multiNotificationCount).filter(Boolean).length);
 			} else {
+				this.hasNewFeeds = false;
 				this.RSS_View_Instance.setNotification(false);
 			}
 
@@ -574,9 +595,9 @@ class WhatsNewRSSCacheUtils {
 	static instanceID: string;
 
 	static keys = {
-		SESSION_DATA_EXPIRY: "whats-new-rss-session-data-expiry",
-		LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
-		SESSION: "whats-new-rss-session-cache-response"
+		SESSION_DATA_EXPIRY: "whats-new-cache-expiry",
+		LAST_LATEST_POST: "whats-new-last-unixtime",
+		SESSION: "whats-new-cache"
 	}
 
 	static setInstanceID(instanceID: string) {

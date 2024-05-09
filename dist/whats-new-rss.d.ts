@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.2
- * Generated on: 8th May, 2024
+ * Generated on: 9th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -84,6 +84,14 @@ declare class WhatsNewRSS {
      * Notification counts for multi feeds by feed key.
      */
     private multiNotificationCount;
+    /**
+     * Check if has new feeds.
+     */
+    private hasNewFeeds;
+    /**
+     * Check if has new feeds in multi feeds mode.
+     */
+    private multiHasNewFeeds;
     /**
      * Initialize our class.
      *
