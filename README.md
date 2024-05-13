@@ -260,3 +260,35 @@ add_action('rss2_item', function() {
 
 });
 ```
+
+### Using library with ReactJS.
+To use this library, you follow below steps:
+
+1. Copy `dist > react` folder into your project.
+2. Import `useWhatsNewRSS` in your project.
+3. Init the `useWhatsNewRSS` hook.
+
+Example:
+
+```JSX
+import React from 'react';
+import useWhatsNewRSS from '__YOUR_PATH_TO__/dist/react/useWhatsNewRSS';
+
+export default function YourExampleComponent() {
+
+	// Initialize library's custom hook.
+	useWhatsNewRSS({
+		rssFeedURL: 'https://wpastra.com/product/astra-theme/feed/',
+		selector: '#container',
+	});
+
+	return (
+		<div>
+			<div id="container" />
+			<h1>Hello World!</h1>
+		</div>
+	)
+
+}
+
+```

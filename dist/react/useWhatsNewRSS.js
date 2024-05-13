@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.3
- * Generated on: 7th May, 2024
+ * Generated on: 13th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -118,6 +118,14 @@ var WhatsNewRSS = /** @class */ (function () {
          * Notification counts for multi feeds by feed key.
          */
         this.multiNotificationCount = {};
+        /**
+         * Check if has new feeds.
+         */
+        this.hasNewFeeds = false;
+        /**
+         * Check if has new feeds in multi feeds mode.
+         */
+        this.multiHasNewFeeds = {};
         this.validateArgs(args);
         this.parseDefaults(args);
         this.setElement();
@@ -296,11 +304,11 @@ var WhatsNewRSS = /** @class */ (function () {
                                             if (item.date > lastPostUnixTime) {
                                                 if (_this.isMultiFeedRSS()) {
                                                     _this.multiNotificationCount[key]++;
+                                                    _this.multiHasNewFeeds[key] = true;
                                                 }
-                                                /**
-                                                 * Keep a record of total notifications even in multi-feed mode.
-                                                 */
+                                                // Keep a record of total notifications even in multi-feed mode.
                                                 _this.notificationsCount++;
+                                                _this.hasNewFeeds = true;
                                             }
                                         });
                                         _this.RSS_View_Instance.setNotification(_this.notificationsCount);
@@ -364,11 +372,13 @@ var WhatsNewRSS = /** @class */ (function () {
                 // Set the last latest post date for notification handling.
                 if (!_this.isMultiFeedRSS()) {
                     _this.lastPostUnixTime = currentPostUnixTime;
-                    if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
-                        _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
-                    }
-                    else {
-                        WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+                    if (_this.hasNewFeeds) {
+                        if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
+                            _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
+                        }
+                        else {
+                            WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+                        }
                     }
                 }
             });
@@ -399,12 +409,15 @@ var WhatsNewRSS = /** @class */ (function () {
                         .then(function (res) {
                         var currentPostUnixTime = res[currentFeedKey][0].date;
                         _this.multiLastPostUnixTime[currentFeedKey] = currentPostUnixTime;
-                        if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
-                            _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+                        if (true === _this.multiHasNewFeeds[currentFeedKey]) {
+                            if ('function' === typeof _this.getArgs().notification.setLastPostUnixTime) {
+                                _this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+                            }
+                            else {
+                                WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+                            }
                         }
-                        else {
-                            WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
-                        }
+                        _this.multiHasNewFeeds[currentFeedKey] = false;
                     });
                     navBtns.forEach(function (navBtn) {
                         navBtn.classList.remove('selected');
@@ -437,6 +450,7 @@ var WhatsNewRSS = /** @class */ (function () {
                 _this.RSS_View_Instance.setNotification(Object.values(_this.multiNotificationCount).filter(Boolean).length);
             }
             else {
+                _this.hasNewFeeds = false;
                 _this.RSS_View_Instance.setNotification(false);
             }
             flyoutInner.innerHTML = '';
@@ -477,13 +491,39 @@ var WhatsNewRSSCacheUtils = /** @class */ (function () {
         }
         return !!prefixKey ? "".concat(this.keys[key], "-").concat(this.instanceID, "-").concat(prefixKey) : "".concat(this.keys[key], "-").concat(this.instanceID);
     };
+    WhatsNewRSSCacheUtils._setDataExpiry = function (prefixKey) {
+        if (prefixKey === void 0) { prefixKey = ''; }
+        var expiryInSeconds = 86400; // Defaults to 24 hours.
+        var now = new Date();
+        var expiry = now.getTime() + (expiryInSeconds * 1000);
+        sessionStorage.setItem(this.prefixer('SESSION_DATA_EXPIRY', prefixKey), JSON.stringify(expiry));
+    };
+    WhatsNewRSSCacheUtils._isDataExpired = function (prefixKey) {
+        if (prefixKey === void 0) { prefixKey = ''; }
+        var key = this.prefixer('SESSION_DATA_EXPIRY', prefixKey);
+        var value = window.sessionStorage.getItem(key);
+        if (!value) {
+            return true;
+        }
+        var expiry = JSON.parse(value);
+        var now = new Date();
+        if (now.getTime() > expiry) {
+            window.sessionStorage.removeItem(key);
+            return true;
+        }
+        return false;
+    };
     WhatsNewRSSCacheUtils.setSessionData = function (data, prefixKey) {
         if (prefixKey === void 0) { prefixKey = ''; }
+        this._setDataExpiry(prefixKey);
         return window.sessionStorage.setItem(this.prefixer('SESSION', prefixKey), data);
     };
     WhatsNewRSSCacheUtils.getSessionData = function (prefixKey) {
         if (prefixKey === void 0) { prefixKey = ''; }
-        return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+        if (!this._isDataExpired(prefixKey)) {
+            return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+        }
+        return '{}';
     };
     WhatsNewRSSCacheUtils.setLastPostUnixTime = function (unixTime, prefixKey) {
         if (prefixKey === void 0) { prefixKey = ''; }
@@ -494,8 +534,9 @@ var WhatsNewRSSCacheUtils = /** @class */ (function () {
         return +window.localStorage.getItem(this.prefixer('LAST_LATEST_POST', prefixKey));
     };
     WhatsNewRSSCacheUtils.keys = {
-        LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
-        SESSION: "whats-new-rss-session-cache-response"
+        SESSION_DATA_EXPIRY: "whats-new-cache-expiry",
+        LAST_LATEST_POST: "whats-new-last-unixtime",
+        SESSION: "whats-new-cache"
     };
     return WhatsNewRSSCacheUtils;
 }());
@@ -526,7 +567,7 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                             return [2 /*return*/, this.data];
                         }
                         fetchPromises = this.RSS.getRSSFeedURLs().map(function (feed) { return __awaiter(_this, void 0, void 0, function () {
-                            var res, data, div, items;
+                            var res, data, parser, xmlDoc, items;
                             var _this = this;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
@@ -538,17 +579,26 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                                         return [4 /*yield*/, res.text()];
                                     case 2:
                                         data = _a.sent();
-                                        div = document.createElement('div');
-                                        div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
-                                        items = div.querySelectorAll('item');
+                                        /**
+                                         * There was an issue with the xml content parse
+                                         * And during parse we were getting "<parsererror>" because of the ‘raquo’ entity.
+                                         */
+                                        data = data.replace(/&raquo;/g, '&amp;raquo;');
+                                        parser = new DOMParser();
+                                        xmlDoc = parser.parseFromString(data, 'text/xml');
+                                        items = xmlDoc.querySelectorAll('item');
                                         items.forEach(function (item) {
                                             var _a;
+                                            var title = item.querySelector('title').textContent;
+                                            var link = item.querySelector('link').textContent;
+                                            var contentEncoded = item.querySelector('content\\:encoded, encoded');
+                                            var content = contentEncoded ? contentEncoded.textContent : '';
                                             var rssDate = item.querySelector('pubDate').innerHTML;
                                             _this.data[feed.key].push({
-                                                title: item.querySelector('title').innerHTML,
+                                                title: title,
                                                 date: !!rssDate ? +new Date(rssDate) : null,
-                                                postLink: item.querySelector('.whats-new-rss-post-link').innerHTML.trim(),
-                                                description: item.querySelector('content\\:encoded').innerHTML,
+                                                postLink: link,
+                                                description: content,
                                                 children: JSON.parse(((_a = item.querySelector('children')) === null || _a === void 0 ? void 0 : _a.innerHTML) || '{}')
                                             });
                                         });

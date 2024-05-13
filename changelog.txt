@@ -1,0 +1,19 @@
+v1.0.3
+- New: Added ReactJS Hook inside "dist > react".
+- Improvement: Implement session data expiry.
+- Improvement: Optimized `setLastPostUnixTime` parameter.
+- Fix: XML parse issue.
+
+v1.0.2
+- New: Highlights new or unread posts.
+- New: Excerpt options for long post contents.
+- Improvement: Better data caching by instance ID.
+- Improvement: Added support multiple feeds.
+
+v1.0.1
+- New: Notification badge with counts.
+- New: Additional methods for the server-side data management.
+- Improvement: Added build headers.
+
+v1.0.0
+- Initial release

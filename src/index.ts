@@ -141,6 +141,18 @@ class WhatsNewRSS {
 	} = {};
 
 	/**
+	 * Check if has new feeds.
+	 */
+	private hasNewFeeds = false;
+
+	/**
+	 * Check if has new feeds in multi feeds mode.
+	 */
+	private multiHasNewFeeds: {
+		[key: string]: boolean,
+	} = {};
+
+	/**
 	 * Initialize our class.
 	 *
 	 * @param {ConstructorArgs} args
@@ -349,12 +361,12 @@ class WhatsNewRSS {
 							if (item.date > lastPostUnixTime) {
 								if (this.isMultiFeedRSS()) {
 									this.multiNotificationCount[key]++;
+									this.multiHasNewFeeds[key] = true;
 								}
 
-								/**
-								 * Keep a record of total notifications even in multi-feed mode.
-								 */
+								// Keep a record of total notifications even in multi-feed mode.
 								this.notificationsCount++;
+								this.hasNewFeeds = true;
 							}
 						});
 
@@ -448,10 +460,13 @@ class WhatsNewRSS {
 					// Set the last latest post date for notification handling.
 					if (!this.isMultiFeedRSS()) {
 						this.lastPostUnixTime = currentPostUnixTime;
-						if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
-							this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
-						} else {
-							WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+
+						if (this.hasNewFeeds) {
+							if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+								this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
+							} else {
+								WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+							}
 						}
 					}
 
@@ -499,11 +514,16 @@ class WhatsNewRSS {
 							const currentPostUnixTime = res[currentFeedKey][0].date;
 
 							this.multiLastPostUnixTime[currentFeedKey] = currentPostUnixTime;
-							if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
-								this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
-							} else {
-								WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+
+							if (true === this.multiHasNewFeeds[currentFeedKey]) {
+								if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
+									this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+								} else {
+									WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+								}
 							}
+
+							this.multiHasNewFeeds[currentFeedKey] = false;
 						});
 
 					navBtns.forEach(navBtn => {
@@ -543,6 +563,7 @@ class WhatsNewRSS {
 			if (this.isMultiFeedRSS()) {
 				this.RSS_View_Instance.setNotification(Object.values(this.multiNotificationCount).filter(Boolean).length);
 			} else {
+				this.hasNewFeeds = false;
 				this.RSS_View_Instance.setNotification(false);
 			}
 
@@ -577,8 +598,9 @@ class WhatsNewRSSCacheUtils {
 	static instanceID: string;
 
 	static keys = {
-		LAST_LATEST_POST: "whats-new-rss-last-lastest-post-unixtime",
-		SESSION: "whats-new-rss-session-cache-response"
+		SESSION_DATA_EXPIRY: "whats-new-cache-expiry",
+		LAST_LATEST_POST: "whats-new-last-unixtime",
+		SESSION: "whats-new-cache"
 	}
 
 	static setInstanceID(instanceID: string) {
@@ -594,12 +616,45 @@ class WhatsNewRSSCacheUtils {
 		return !!prefixKey ? `${this.keys[key]}-${this.instanceID}-${prefixKey}` : `${this.keys[key]}-${this.instanceID}`;
 	}
 
+	private static _setDataExpiry(prefixKey = '') {
+
+		const expiryInSeconds = 86400; // Defaults to 24 hours.
+
+		const now = new Date();
+		const expiry = now.getTime() + (expiryInSeconds * 1000);
+		sessionStorage.setItem(this.prefixer('SESSION_DATA_EXPIRY', prefixKey), JSON.stringify(expiry));
+	}
+
+	private static _isDataExpired(prefixKey = '') {
+		const key = this.prefixer('SESSION_DATA_EXPIRY', prefixKey);
+		const value = window.sessionStorage.getItem(key);
+
+		if (!value) {
+			return true;
+		}
+
+		const expiry = JSON.parse(value);
+		const now = new Date();
+
+		if (now.getTime() > expiry) {
+			window.sessionStorage.removeItem(key);
+			return true;
+		}
+
+		return false;
+	}
+
 	static setSessionData(data: string, prefixKey = '') {
+		this._setDataExpiry(prefixKey);
 		return window.sessionStorage.setItem(this.prefixer('SESSION', prefixKey), data);
 	}
 
 	static getSessionData(prefixKey = '') {
-		return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+		if (!this._isDataExpired(prefixKey)) {
+			return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
+		}
+
+		return '{}';
 	}
 
 	static setLastPostUnixTime(unixTime: number, prefixKey = '') {
@@ -651,19 +706,32 @@ class WhatsNewRSSFetch {
 			this.data[feed.key] = [];
 
 			const res = await fetch(feed.url);
-			const data = await res.text();
+			let data = await res.text();
 
-			const div = document.createElement('div');
-			div.innerHTML = data.replace(/<link>(.*?)<\/link>/g, '<a class="whats-new-rss-post-link">$1</a>').replace(/\s*]]>\s*/g, '');
+			/**
+			 * There was an issue with the xml content parse
+			 * And during parse we were getting "<parsererror>" because of the ‘raquo’ entity.
+			 */
+			data = data.replace(/&raquo;/g, '&amp;raquo;');
 
-			const items = div.querySelectorAll('item');
-			items.forEach((item) => {
+			const parser = new DOMParser();
+			const xmlDoc = parser.parseFromString(data, 'text/xml');
+
+			const items = xmlDoc.querySelectorAll('item');
+
+			items.forEach(item => {
+
+				const title = item.querySelector('title').textContent;
+				const link = item.querySelector('link').textContent;
+				const contentEncoded = item.querySelector('content\\:encoded, encoded');
+				const content = contentEncoded ? contentEncoded.textContent : '';
 				const rssDate = item.querySelector('pubDate').innerHTML;
+
 				this.data[feed.key].push({
-					title: item.querySelector('title').innerHTML,
+					title: title,
 					date: !!rssDate ? +new Date(rssDate) : null,
-					postLink: item.querySelector('.whats-new-rss-post-link').innerHTML.trim(),
-					description: item.querySelector('content\\:encoded').innerHTML,
+					postLink: link,
+					description: content,
 					children: JSON.parse(item.querySelector('children')?.innerHTML || '{}')
 				});
 			});
