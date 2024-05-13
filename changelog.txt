@@ -1,4 +1,5 @@
 v1.0.3
+- New: Added ReactJS Hook inside "dist > react".
 - Improvement: Implement session data expiry.
 - Improvement: Optimized `setLastPostUnixTime` parameter.
 - Fix: XML parse issue.

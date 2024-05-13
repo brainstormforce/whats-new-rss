@@ -38,6 +38,7 @@ type ConstructorArgs = {
 		onOpen?: ((RSS: WhatsNewRSS) => void),
 		onClose?: ((RSS: WhatsNewRSS) => void),
 		onReady?: ((RSS: WhatsNewRSS) => void),
+		formatDate?: null | ((date: Date) => string),
 	}
 }
 
@@ -78,9 +79,10 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 		closeOnEsc: true,
 		closeOnOverlayClick: true,
 		closeBtnIcon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 18L18 6M6 6L18 18" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+		formatDate: null,
 		onOpen: () => { },
 		onClose: () => { },
-		onReady: () => { }
+		onReady: () => { },
 	}
 }
 
@@ -420,18 +422,19 @@ class WhatsNewRSS {
 
 						const innerContent = `
 								<div class="rss-content-header">
-									<p>${this.RSS_View_Instance.timeAgo(new Date(item.date))}</p>
+									<p>${this.RSS_View_Instance.formatDate(new Date(item.date))}</p>
 									<a href="${item.postLink}" target="_blank">
 										<h2>${item.title}</h2>
 									</a>
 								</div>
 								${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
+								${this.RSS_View_Instance.listChildrenPosts(item.children)}
 							`;
 
 						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
 							innerContent,
 							isNewPost,
-							`inner-content-item-feed-key-${key}`
+							!!key ? `inner-content-item-feed-key-${key}` : ''
 						);
 					});
 
@@ -677,6 +680,7 @@ class WhatsNewRSSFetch {
 			date: number | null;
 			postLink: string;
 			description: string;
+			children: object;
 		}[];
 	} = {};
 
@@ -728,9 +732,9 @@ class WhatsNewRSSFetch {
 					date: !!rssDate ? +new Date(rssDate) : null,
 					postLink: link,
 					description: content,
+					children: JSON.parse(item.querySelector('children')?.innerHTML || '{}')
 				});
 			});
-
 			WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data[feed.key]), feed.key);
 		});
 
@@ -946,7 +950,50 @@ class WhatsNewRSSView {
 		return `<p>${rawExcerpt}</p>`;
 	}
 
-	public timeAgo(date: Date) {
+	public listChildrenPosts(children: object) {
+
+		const _children = Object.values(children);
+
+		if (!_children.length) return '';
+
+		const details = document.createElement('details');
+		const summary = document.createElement('summary');
+		const itemsWrapper = document.createElement('div');
+
+		_children.forEach((child) => {
+			const postContentDoc = new DOMParser().parseFromString(child.post_content, 'text/html');
+
+			const itemDiv = document.createElement('div');
+			itemDiv.classList.add('sub-version-item');
+
+			itemDiv.innerHTML = `
+				<div class="sub-version-header">
+					<h4 class="sub-version-title">${child.post_title}</h4>
+					<span class="sub-version-date">${this.formatDate(new Date(child.post_date))}</span>
+				</div>
+				<div class="sub-version-content">${postContentDoc.documentElement.textContent}</div>
+			`;
+
+			itemsWrapper.appendChild(itemDiv);
+		});
+
+		summary.innerHTML = '<p class="text-see-more">See More</p><p class="text-see-less">See Less</p>';
+
+		details.appendChild(summary);
+		details.appendChild(itemsWrapper);
+
+		itemsWrapper.classList.add('sub-version-items-wrapper');
+		details.classList.add('whats-new-rss-sub-version-details');
+
+		return details.outerHTML;
+	}
+
+	public formatDate(date: Date) {
+
+		if ('function' === typeof this.RSS.getArgs().flyout.formatDate) {
+			return this.RSS.getArgs().flyout.formatDate(date);
+		}
+
 		const currentDate = new Date();
 		const timestamp = date.getTime();
 		const currentTimestamp = currentDate.getTime();

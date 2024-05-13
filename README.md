@@ -75,6 +75,7 @@ The `WhatsNewRSS` class accepts the following configuration options:
   - `closeBtnIcon` (string, optional): SVG code for the close button icon.
   - `closeOnEsc` (boolean, optional): Close the flyout on ESC key press.
   - `closeOnOverlayClick` (boolean, optional): Close the flyout on overlay click.
+  - `formatDate` (function, optional): Function to format date according to custom needs. Provides "Date" object as argument Must return string.
   - `onOpen` (function, optional): Function to be executed on flyout open.
   - `onClose` (function, optional): Function to be executed on flyout close.
   - `onReady` (function, optional): Function to be executed on flyout ready.
@@ -234,4 +235,60 @@ const rss = new WhatsNewRSS({
 });
 
 console.log(rss);
+```
+
+### Displaying children posts [Display nested sub-versions]
+Suppose, if this is your provided RSS Feed URL: `http://whats-new-rss-nested.local/product/astra-pro-addon/feed/` then you need to add below **PHP code** snippet in your WordPress site: `http://whats-new-rss-nested.local`.
+
+By default, WordPress RSS Feeds does not supports children posts in its XML Feed data.
+
+The, PHP code provided below appends children posts of the current parent post in the XML Feed. After that, the WhatsNewRSS library checks for the `<children>` custom tag in the feed URL, and then it will extract the JSON data from the `<children>` custom tag
+
+Things to consider:
+- Sub Version only works if the `<children>` custom tag is provided.
+- The inner content of the `<children>` custom tag must be an array of WP_POST `WP_Post[]` and should be json encoded like in the snippet below.
+
+```PHP
+add_action('rss2_item', function() {
+	global $post;
+
+	$children_posts = get_children( $post->ID );
+
+	if ( $children_posts ) {
+		echo '<children>' . htmlspecialchars( json_encode( $children_posts ), ENT_QUOTES, 'UTF-8' ) . '</children>';
+	}
+
+});
+```
+
+### Using library with ReactJS.
+To use this library, you follow below steps:
+
+1. Copy `dist > react` folder into your project.
+2. Import `useWhatsNewRSS` in your project.
+3. Init the `useWhatsNewRSS` hook.
+
+Example:
+
+```JSX
+import React from 'react';
+import useWhatsNewRSS from '__YOUR_PATH_TO__/dist/react/useWhatsNewRSS';
+
+export default function YourExampleComponent() {
+
+	// Initialize library's custom hook.
+	useWhatsNewRSS({
+		rssFeedURL: 'https://wpastra.com/product/astra-theme/feed/',
+		selector: '#container',
+	});
+
+	return (
+		<div>
+			<div id="container" />
+			<h1>Hello World!</h1>
+		</div>
+	)
+
+}
+
 ```
