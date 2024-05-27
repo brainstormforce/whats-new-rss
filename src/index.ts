@@ -162,6 +162,11 @@ class WhatsNewRSS {
 		this.parseDefaults(args);
 		this.setElement();
 
+        if (!this.getElement()) {
+			console.warn('WNR: Cannot find element with', this.getArgs().selector);
+            return;
+        }
+
 		this.setID();
 
 		this.setRSSFeedURLs();
