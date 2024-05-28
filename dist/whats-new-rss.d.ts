@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.3
- * Generated on: 27th May, 2024
+ * Generated on: 28th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -31,6 +31,10 @@ type ConstructorArgs = {
     };
     flyout?: {
         title?: string;
+        innerContent?: {
+            titleLink?: boolean;
+            additionalClasses?: string[];
+        };
         excerpt?: {
             wordLimit?: null | number;
             moreSymbol?: string;

@@ -65,6 +65,7 @@ The `WhatsNewRSS` class accepts the following configuration options:
   - `getLastPostUnixTime` (function, optional): You can use this method to fetch the saved UnixTime from your server when needed.
 - `flyout` (object, optional): Configuration for the flyout.
   - `title` (string, optional): Title of the flyout.
+  - `innerContent` (object, optional): Configuration for the inner content.
   - `excerpt` (object, optional): Configuration for the excerpt.
   - `wordLimit` (number | null, optional): Total length of the content to keep after trimming. Default is `500 words`. Provide `null` to disable excerpt.
   - `moreSymbol` (string, optional): Symbol to append after excerpt. Default: `&hellip;`: &hellip;
@@ -162,6 +163,10 @@ const rss = new WhatsNewRSS({
   },
   flyout: {
 	title: 'Latest Updates',
+	innerContent: {
+		titleLink: true, // Whether to add or not link to inner content title.
+		additionalClasses: [] // Additional classes for inner content wrapper.
+	},
 	excerpt: {
 		wordLimit: 500,
 		moreSymbol: '&hellip;',

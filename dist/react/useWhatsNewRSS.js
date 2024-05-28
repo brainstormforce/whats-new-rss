@@ -2,11 +2,11 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.3
- * Generated on: 27th May, 2024
+ * Generated on: 28th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import "./whats-new-rss.css";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -76,6 +76,10 @@ var WhatsNewRSSDefaultArgs = {
     },
     flyout: {
         title: "What's New?",
+        innerContent: {
+            titleLink: true,
+            additionalClasses: []
+        },
         excerpt: {
             wordLimit: 500,
             moreSymbol: '&hellip;',
@@ -177,8 +181,8 @@ var WhatsNewRSS = /** @class */ (function () {
      * @param {ConstructorArgs} args
      */
     WhatsNewRSS.prototype.parseDefaults = function (args) {
-        var _a;
-        this.args = __assign(__assign(__assign({}, WhatsNewRSSDefaultArgs), args), { viewAll: __assign(__assign({}, WhatsNewRSSDefaultArgs.viewAll), args === null || args === void 0 ? void 0 : args.viewAll), triggerButton: __assign(__assign({}, WhatsNewRSSDefaultArgs.triggerButton), args === null || args === void 0 ? void 0 : args.triggerButton), flyout: __assign(__assign(__assign({}, WhatsNewRSSDefaultArgs.flyout), args === null || args === void 0 ? void 0 : args.flyout), { excerpt: __assign(__assign({}, WhatsNewRSSDefaultArgs.flyout.excerpt), (_a = args === null || args === void 0 ? void 0 : args.flyout) === null || _a === void 0 ? void 0 : _a.excerpt) }) });
+        var _a, _b;
+        this.args = __assign(__assign(__assign({}, WhatsNewRSSDefaultArgs), args), { viewAll: __assign(__assign({}, WhatsNewRSSDefaultArgs.viewAll), args === null || args === void 0 ? void 0 : args.viewAll), triggerButton: __assign(__assign({}, WhatsNewRSSDefaultArgs.triggerButton), args === null || args === void 0 ? void 0 : args.triggerButton), flyout: __assign(__assign(__assign({}, WhatsNewRSSDefaultArgs.flyout), args === null || args === void 0 ? void 0 : args.flyout), { innerContent: __assign(__assign({}, WhatsNewRSSDefaultArgs.flyout.innerContent), (_a = args === null || args === void 0 ? void 0 : args.flyout) === null || _a === void 0 ? void 0 : _a.innerContent), excerpt: __assign(__assign({}, WhatsNewRSSDefaultArgs.flyout.excerpt), (_b = args === null || args === void 0 ? void 0 : args.flyout) === null || _b === void 0 ? void 0 : _b.excerpt) }) });
     };
     /**
      * Returns parsed args.
@@ -359,8 +363,16 @@ var WhatsNewRSS = /** @class */ (function () {
                 var lastPostUnixTime = _this.isMultiFeedRSS() ? _this.multiLastPostUnixTime[key] : _this.lastPostUnixTime;
                 data.forEach(function (item) {
                     var isNewPost = !!lastPostUnixTime ? item.date > lastPostUnixTime : false;
-                    var innerContent = "\n\t\t\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.formatDate(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t\t\t<a href=\"").concat(item.postLink, "\" target=\"_blank\">\n\t\t\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.createExcerpt(item.description, item.postLink, _this.getArgs().flyout.excerpt), "\n\t\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.listChildrenPosts(item.children), "\n\t\t\t\t\t\t\t");
-                    flyoutInner.innerHTML += _this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost, !!key ? "inner-content-item-feed-key-".concat(key) : '');
+                    var contentTitle = _this.getArgs().flyout.innerContent ?
+                        "<a href=\"".concat(item.postLink, "\" target=\"_blank\">\n\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t</a>")
+                        :
+                            "<h2>".concat(item.title, "</h2>");
+                    var innerContent = "\n\t\t\t\t\t\t\t\t<div class=\"rss-content-header\">\n\t\t\t\t\t\t\t\t\t<p>".concat(_this.RSS_View_Instance.formatDate(new Date(item.date)), "</p>\n\t\t\t\t\t\t\t\t\t").concat(contentTitle, "\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.createExcerpt(item.description, item.postLink, _this.getArgs().flyout.excerpt), "\n\t\t\t\t\t\t\t\t").concat(_this.RSS_View_Instance.listChildrenPosts(item.children), "\n\t\t\t\t\t\t\t");
+                    var additionalClasses = _this.getArgs().flyout.innerContent.additionalClasses;
+                    if (!!key) {
+                        additionalClasses.push('`inner-content-item-feed-key-${key}`');
+                    }
+                    flyoutInner.innerHTML += _this.RSS_View_Instance.innerContentWrapper(innerContent, isNewPost, additionalClasses.join(' '));
                 });
                 if (_this.getArgs().viewAll.link) {
                     // If we have link provided for the view all button then append a view all button at the end of the contents.
@@ -808,12 +820,28 @@ var WhatsNewRSSView = /** @class */ (function () {
 }());
 
 
-function useWhatsNewRSS(args) {
-	let wnr = null;
-	useEffect(() => {
-		if (!wnr) {
-			wnr = new WhatsNewRSS(args);
-		}
-	}, [args])
+
+function createWhatsNewRSSInstance(args) {
+    return new WhatsNewRSS(args);
 }
+
+function useWhatsNewRSS({ selector, ...rest }) {
+    const instanceRef = useRef(null);
+
+    useEffect(() => {
+        if (!instanceRef.current) {
+            instanceRef.current = createWhatsNewRSSInstance({ selector, ...rest });
+        }
+
+        // Cleanup function
+        return () => {
+            if (instanceRef.current && typeof instanceRef.current.destroy === 'function') {
+                instanceRef.current.destroy();
+            }
+        };
+    }, [selector, ...Object.values(rest)]); // Adjust dependencies as needed
+
+    return instanceRef.current;
+}
+
 export default useWhatsNewRSS;
