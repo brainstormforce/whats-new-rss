@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.3
- * Generated on: 13th May, 2024
+ * Generated on: 27th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -129,6 +129,10 @@ var WhatsNewRSS = /** @class */ (function () {
         this.validateArgs(args);
         this.parseDefaults(args);
         this.setElement();
+        if (!this.getElement()) {
+            console.warn('WNR: Cannot find element with', this.getArgs().selector);
+            return;
+        }
         this.setID();
         this.setRSSFeedURLs();
         WhatsNewRSSCacheUtils.setInstanceID(this.getID());
