@@ -5,6 +5,7 @@ const minifyCSS = require('gulp-clean-css');
 const rename = require('gulp-rename');
 const uglify = require('gulp-uglify');
 const headerComment = require('gulp-header-comment');
+const replace = require('gulp-replace');
 
 const hookContent = `
 
@@ -37,6 +38,7 @@ export default useWhatsNewRSS;
 function handleScssBuild() {
 	return gulp.src("src/scss/**/*.scss")
 		.pipe(sass().on('error', sass.logError))
+		.pipe(replace('@charset "UTF-8";', ''))
 		.pipe(gulp.dest('dist'));
 }
 
