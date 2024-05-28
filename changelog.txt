@@ -1,4 +1,4 @@
-v1.0.4 - Unreleased
+v1.0.4
 - Improvement: Added an option to enable/disable the inner content title link.
 - Fix: React app crash when element is null or not found.
 
