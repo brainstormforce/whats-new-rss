@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.4
- * Generated on: 28th May, 2024
+ * Generated on: 29th May, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -202,6 +202,12 @@
     right: 0;
     bottom: 0;
     left: 0;
-    background: rgba(0, 0, 0, 0.5); }
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+    visibility: hidden; }
+  .whats-new-rss-flyout.open .whats-new-rss-flyout-overlay {
+    opacity: 1;
+    visibility: visible; }
   .whats-new-rss-flyout.closed {
     transform: translateX(100%); }
