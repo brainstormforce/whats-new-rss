@@ -1,7 +1,10 @@
 {
   "name": "whats-new-rss",
   "version": "1.0.4",
-  "main": "index.js",
+  "main": "dist/react/useWhatsNewRSS.js",
+  "files": [
+    "dist/react"
+  ],
   "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && tsc --sourceMap false && gulp sass:minify && gulp uglify && gulp generate-react-files && gulp headers",
