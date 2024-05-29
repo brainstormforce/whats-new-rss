@@ -244,6 +244,16 @@
 		bottom: 0;
 		left: 0;
 		background: rgba(0, 0, 0, 0.5);
+		opacity: 0;
+		transition: opacity 0.6s ease-in-out;
+		visibility: hidden;
+	}
+
+	&.open {
+		.whats-new-rss-flyout-overlay {
+			opacity: 1;
+			visibility: visible;
+		}
 	}
 
 	&.closed {
