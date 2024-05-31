@@ -14,6 +14,12 @@ The **What's New RSS** library is a JavaScript library that allows you to easily
 
 ## Installation
 
+### Installing as npm package:
+To install the library as a npm package, you can simply use this command `npm install github:brainstormforce/whats-new-rss`. This will install the library in your project like any other npm package.
+
+`Note: Your package bundler should be able to process ".css" files import to use this method.`
+
+### Installing in traditional way ( General purpose ) 
 To use the library, download the `dist` folder in your project and include the following script tag in your HTML:
 
 ```HTML
