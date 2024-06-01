@@ -1,19 +1,23 @@
+$transition-ease: 0.3s ease-in-out;
+$border-color: #ccc;
+$background-color: #ffffff;
+$text-color: #94a3b8;
+$z-index-overlay: 9999;
+$z-index-flyout: 99999;
+$icon-size: 25px;
+$button-color: inherit;
+$border-bottom-width: 1px;
+
 .whats-new-rss-flyout {
 	position: fixed;
 	top: 0;
 	right: 0;
 	bottom: 0;
-	width: 30%;
-	background: #ffffff;
-	box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
-	transition: transform 0.3s ease-in-out;
-	z-index: 99999;
+	width: 100%;
+	z-index: $z-index-flyout;
+	transition: visibility $transition-ease;
 
-	.hidden {
-		display: none;
-	}
-
-	.whats-new-rss-flyout-inner-header__loading-icon {
+	&.hidden {
 		display: none;
 	}
 
@@ -24,32 +28,35 @@
 		svg {
 			display: block;
 			background: transparent;
-			width: 25px;
-			height: 25px;
+			width: $icon-size;
+			height: $icon-size;
 		}
 	}
 
 	.whats-new-rss-flyout-contents {
-		height: 100%;
+		position: fixed;
 		display: flex;
+		right: 0;
+		width: 30%;
+		height: 100%;
 		flex-direction: column;
-		position: relative;
-		background-color: #ffffff;
-		z-index: 9999;
+		background-color: $background-color;
+		transition: transform $transition-ease;
+		z-index: $z-index-overlay;
 
 		.whats-new-rss-flyout-inner-header {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
 			padding: 5px 30px;
-			border-bottom: 1px solid #ccc;
+			border-bottom: $border-bottom-width solid $border-color;
 
 			button {
 				background: none;
 				border: none;
 				font-size: 30px;
 				cursor: pointer;
-				color: #94A3B8;
+				color: $text-color;
 				transition: transform 0.2s ease-in-out;
 
 				&:hover,
@@ -62,13 +69,12 @@
 				display: flex;
 				gap: 10px;
 			}
-
 		}
 
 		.whats-new-rss-multi-feed-nav {
 			display: flex;
-			padding: 0px 30px;
-			border-bottom: 1px solid #cccccc;
+			padding: 0 30px;
+			border-bottom: $border-bottom-width solid $border-color;
 			gap: 2em;
 			overflow: auto;
 			white-space: nowrap;
@@ -76,14 +82,13 @@
 			button {
 				position: relative;
 				background: none;
-				color: inherit;
-				padding: 15px 0px;
+				color: $button-color;
+				padding: 15px 0;
 				border-bottom: 2px solid transparent;
-				border-radius: 0;
 
 				&:hover,
 				&:focus {
-					border-color: inherit;
+					border-color: $button-color;
 				}
 
 				&.selected {
@@ -92,7 +97,7 @@
 
 				.new-notification-count {
 					position: absolute;
-					top: 0px;
+					top: 0;
 					right: -10px;
 					width: 20px;
 					font-size: 10px;
@@ -114,7 +119,7 @@
 			}
 
 			.whats-new-rss-flyout-inner-content-item {
-				border-bottom: 1px solid #D8DFE9;
+				border-bottom: 1px solid #d8dfe9;
 				padding: 15px 30px;
 
 				&.skeleton-row {
@@ -123,16 +128,6 @@
 					background: linear-gradient(90deg, #eee 25%, #ddd 50%, #eee 75%);
 					background-size: 200% 100%;
 					animation: shimmer 1.5s infinite;
-				}
-
-				@keyframes shimmer {
-					0% {
-						background-position: -200% 0;
-					}
-
-					100% {
-						background-position: 200% 0;
-					}
 				}
 
 				&.rss-new-post {
@@ -150,7 +145,7 @@
 
 				.rss-content-header {
 					p {
-						color: #94a3b8;
+						color: $text-color;
 						margin-bottom: 5px;
 						font-weight: 600;
 					}
@@ -174,7 +169,7 @@
 			line-height: 20px;
 			font-size: 0.9em;
 			margin: 10px 0;
-			background: #F9FAFB;
+			background: #f9fafb;
 
 			summary {
 				display: flex;
@@ -201,28 +196,26 @@
 				}
 			}
 
-			&[open] {
-				summary {
-					border-bottom: 1px solid #E2E8F0;
+			&[open] summary {
+				border-bottom: 1px solid #e2e8f0;
 
-					&::after {
-						transform: rotateX(45deg);
-					}
+				&::after {
+					transform: rotateX(45deg);
+				}
 
-					.text-see-more {
-						display: none;
-					}
+				.text-see-more {
+					display: none;
+				}
 
-					.text-see-less {
-						display: block;
-					}
+				.text-see-less {
+					display: block;
 				}
 			}
 
 			.sub-version-item {
 				position: relative;
 				padding: 1em;
-				border-bottom: 1px solid #E2E8F0;
+				border-bottom: 1px solid #e2e8f0;
 
 				.sub-version-header {
 					display: flex;
@@ -234,7 +227,6 @@
 				}
 			}
 		}
-
 	}
 
 	.whats-new-rss-flyout-overlay {
@@ -244,20 +236,33 @@
 		bottom: 0;
 		left: 0;
 		background: rgba(0, 0, 0, 0.5);
-		opacity: 0;
-		transition: opacity 0.6s ease-in-out;
-		visibility: hidden;
-	}
-
-	&.open {
-		.whats-new-rss-flyout-overlay {
-			opacity: 1;
-			visibility: visible;
-		}
+		transition: opacity $transition-ease;
 	}
 
 	&.closed {
-		transform: translateX(100%);
+		visibility: hidden;
+
+		.whats-new-rss-flyout-overlay {
+			opacity: 0;
+			visibility: hidden;
+		}
+
+		.whats-new-rss-flyout-contents {
+			transform: translateX(100%);
+		}
 	}
 
+	.whats-new-rss-flyout-inner-header__loading-icon {
+		display: none;
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+
+	100% {
+		background-position: 200% 0;
+	}
 }
