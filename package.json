@@ -13,7 +13,6 @@
     "url": "https://github.com/brainstormforce/whats-new-rss",
     "directory": "dist/react"
   },
-  "types": "dist/react/whats-new-rss.d.ts",
   "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && tsc --sourceMap false && gulp sass:minify && gulp uglify && gulp generate-react-files && gulp headers",
