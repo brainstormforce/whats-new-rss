@@ -1,10 +1,18 @@
 {
   "name": "whats-new-rss",
+  "description": "The What's New RSS library is a JavaScript library that allows you to easily integrate a \"What's New?\" section into your website or application. It fetches and displays the latest updates from an RSS feed in a customizable and user-friendly way.",
   "version": "1.0.4",
+  "homepage": "https://github.com/brainstormforce/whats-new-rss/blob/master/README.md",
+  "bugs": "https://github.com/brainstormforce/whats-new-rss/issues",
   "main": "dist/react/useWhatsNewRSS.js",
   "files": [
     "dist/react"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brainstormforce/whats-new-rss",
+    "directory": "dist/react"
+  },
   "types": "dist/react/whats-new-rss.d.ts",
   "license": "MIT",
   "scripts": {
