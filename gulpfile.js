@@ -76,9 +76,9 @@ gulp.task('generate-react-files', function (done) {
 			if (err) throw err;
 		});
 
-		gulp.src('dist/whats-new-rss.css').pipe(gulp.dest('dist/react/'))
+		gulp.src('dist/whats-new-rss.min.css').pipe(gulp.dest('dist/react/'))
 
-		data = 'import { useEffect, useRef } from "react";\nimport "./whats-new-rss.css";\n' + data
+		data = 'import { useEffect, useRef } from "react";\nimport "./whats-new-rss.min.css";\n' + data
 		data += '\n' + hookContent;
 
 		fs.writeFile('dist/react/useWhatsNewRSS.js', data, (err) => {

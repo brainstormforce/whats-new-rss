@@ -2,12 +2,12 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.4
- * Generated on: 29th May, 2024
+ * Generated on: 1st June, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
 import { useEffect, useRef } from "react";
-import "./whats-new-rss.css";
+import "./whats-new-rss.min.css";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -363,7 +363,7 @@ var WhatsNewRSS = /** @class */ (function () {
                 var lastPostUnixTime = _this.isMultiFeedRSS() ? _this.multiLastPostUnixTime[key] : _this.lastPostUnixTime;
                 data.forEach(function (item) {
                     var isNewPost = !!lastPostUnixTime ? item.date > lastPostUnixTime : false;
-                    var contentTitle = _this.getArgs().flyout.innerContent ?
+                    var contentTitle = _this.getArgs().flyout.innerContent.titleLink ?
                         "<a href=\"".concat(item.postLink, "\" target=\"_blank\">\n\t\t\t\t\t\t\t\t<h2>").concat(item.title, "</h2>\n\t\t\t\t\t\t\t</a>")
                         :
                             "<h2>".concat(item.title, "</h2>");

@@ -437,7 +437,7 @@ class WhatsNewRSS {
 
 						const isNewPost = !!lastPostUnixTime ? item.date > lastPostUnixTime : false;
 
-						const contentTitle = this.getArgs().flyout.innerContent ?
+						const contentTitle = this.getArgs().flyout.innerContent.titleLink ?
 							`<a href="${item.postLink}" target="_blank">
 								<h2>${item.title}</h2>
 							</a>`
