@@ -1,3 +1,9 @@
+v1.0.4
+- Improvement: Made the library compatible to use with npm install.
+- Improvement: Added an option to enable/disable the inner content title link.
+- Improvement: Improved flyout overlay animation.
+- Fix: React app crash when element is null or not found.
+
 v1.0.3
 - New: Added ReactJS Hook inside "dist > react".
 - Improvement: Implement session data expiry.

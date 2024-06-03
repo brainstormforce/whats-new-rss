@@ -23,6 +23,10 @@ type ConstructorArgs = {
 	}
 	flyout?: {
 		title?: string,
+		innerContent?: {
+			titleLink?: boolean, // Whether to add or not link to inner content title.
+			additionalClasses?: string[] // Additional classes for inner content wrapper.
+		},
 		excerpt?: {
 			wordLimit?: null | number,
 			moreSymbol?: string,
@@ -67,6 +71,10 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 	},
 	flyout: {
 		title: "What's New?",
+		innerContent: {
+			titleLink: true,
+			additionalClasses: []
+		},
 		excerpt: {
 			wordLimit: 500,
 			moreSymbol: '&hellip;',
@@ -162,6 +170,11 @@ class WhatsNewRSS {
 		this.parseDefaults(args);
 		this.setElement();
 
+		if (!this.getElement()) {
+			console.warn('WNR: Cannot find element with', this.getArgs().selector);
+			return;
+		}
+
 		this.setID();
 
 		this.setRSSFeedURLs();
@@ -226,6 +239,10 @@ class WhatsNewRSS {
 			flyout: {
 				...WhatsNewRSSDefaultArgs.flyout,
 				...args?.flyout,
+				innerContent: {
+					...WhatsNewRSSDefaultArgs.flyout.innerContent,
+					...args?.flyout?.innerContent,
+				},
 				excerpt: {
 					...WhatsNewRSSDefaultArgs.flyout.excerpt,
 					...args?.flyout?.excerpt,
@@ -420,21 +437,32 @@ class WhatsNewRSS {
 
 						const isNewPost = !!lastPostUnixTime ? item.date > lastPostUnixTime : false;
 
+						const contentTitle = this.getArgs().flyout.innerContent.titleLink ?
+							`<a href="${item.postLink}" target="_blank">
+								<h2>${item.title}</h2>
+							</a>`
+							:
+							`<h2>${item.title}</h2>`;
+
 						const innerContent = `
 								<div class="rss-content-header">
 									<p>${this.RSS_View_Instance.formatDate(new Date(item.date))}</p>
-									<a href="${item.postLink}" target="_blank">
-										<h2>${item.title}</h2>
-									</a>
+									${contentTitle}
 								</div>
 								${this.RSS_View_Instance.createExcerpt(item.description, item.postLink, this.getArgs().flyout.excerpt)}
 								${this.RSS_View_Instance.listChildrenPosts(item.children)}
 							`;
 
+						const additionalClasses = this.getArgs().flyout.innerContent.additionalClasses;
+
+						if (!!key) {
+							additionalClasses.push('`inner-content-item-feed-key-${key}`');
+						}
+
 						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
 							innerContent,
 							isNewPost,
-							!!key ? `inner-content-item-feed-key-${key}` : ''
+							additionalClasses.join(' ')
 						);
 					});
 

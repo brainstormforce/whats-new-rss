@@ -14,6 +14,14 @@ The **What's New RSS** library is a JavaScript library that allows you to easily
 
 ## Installation
 
+### Installing as npm package:
+
+To install the library as a npm package, you can simply use this command `npm install github:brainstormforce/whats-new-rss`. This will install the library in your project like any other npm package.
+
+`Note: Your package bundler should be able to process ".css" files import to use this method.`
+
+### Installing in traditional way ( General purpose )
+
 To use the library, download the `dist` folder in your project and include the following script tag in your HTML:
 
 ```HTML
@@ -23,7 +31,26 @@ To use the library, download the `dist` folder in your project and include the f
 
 ## Usage
 
-### Initialize the Library
+### For npm package method:
+
+```JSX
+import useWhatsNewRSS from "whats-new-rss";
+
+export default YourComponent = () => {
+
+	useWhatsNewRSS({
+		rssFeedURL: "https://wpastra.com/whats-new/feed/",
+		selector: 'YOUR_CONTAINER_SELECTOR',
+		// Additional configuration options (optional)
+	});
+
+	return <div id="YOUR_CONTAINER_SELECTOR"></div>
+
+}
+
+```
+
+### For traditional way ( General purpose )
 
 ```JS
 const rss = new WhatsNewRSS({
@@ -65,6 +92,7 @@ The `WhatsNewRSS` class accepts the following configuration options:
   - `getLastPostUnixTime` (function, optional): You can use this method to fetch the saved UnixTime from your server when needed.
 - `flyout` (object, optional): Configuration for the flyout.
   - `title` (string, optional): Title of the flyout.
+  - `innerContent` (object, optional): Configuration for the inner content.
   - `excerpt` (object, optional): Configuration for the excerpt.
   - `wordLimit` (number | null, optional): Total length of the content to keep after trimming. Default is `500 words`. Provide `null` to disable excerpt.
   - `moreSymbol` (string, optional): Symbol to append after excerpt. Default: `&hellip;`: &hellip;
@@ -101,7 +129,9 @@ const rss = new WhatsNewRSS({
 ```
 
 ### Multi Feed Example
+
 In multi-feed mode, you will pass `rssFeedURL` as an Array of objects, with properties:
+
 ```
 {
 	key: [string] (Required): Unique key for current feed tab,
@@ -162,6 +192,10 @@ const rss = new WhatsNewRSS({
   },
   flyout: {
 	title: 'Latest Updates',
+	innerContent: {
+		titleLink: true, // Whether to add or not link to inner content title.
+		additionalClasses: [] // Additional classes for inner content wrapper.
+	},
 	excerpt: {
 		wordLimit: 500,
 		moreSymbol: '&hellip;',
@@ -238,6 +272,7 @@ console.log(rss);
 ```
 
 ### Displaying children posts [Display nested sub-versions]
+
 Suppose, if this is your provided RSS Feed URL: `http://whats-new-rss-nested.local/product/astra-pro-addon/feed/` then you need to add below **PHP code** snippet in your WordPress site: `http://whats-new-rss-nested.local`.
 
 By default, WordPress RSS Feeds does not supports children posts in its XML Feed data.
@@ -245,6 +280,7 @@ By default, WordPress RSS Feeds does not supports children posts in its XML Feed
 The, PHP code provided below appends children posts of the current parent post in the XML Feed. After that, the WhatsNewRSS library checks for the `<children>` custom tag in the feed URL, and then it will extract the JSON data from the `<children>` custom tag
 
 Things to consider:
+
 - Sub Version only works if the `<children>` custom tag is provided.
 - The inner content of the `<children>` custom tag must be an array of WP_POST `WP_Post[]` and should be json encoded like in the snippet below.
 
@@ -262,6 +298,7 @@ add_action('rss2_item', function() {
 ```
 
 ### Using library with ReactJS.
+
 To use this library, you follow below steps:
 
 1. Copy `dist > react` folder into your project.

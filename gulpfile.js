@@ -8,14 +8,30 @@ const headerComment = require('gulp-header-comment');
 const replace = require('gulp-replace');
 
 const hookContent = `
-function useWhatsNewRSS(args) {
-	let wnr = null;
-	useEffect(() => {
-		if (!wnr) {
-			wnr = new WhatsNewRSS(args);
-		}
-	}, [args])
+
+function createWhatsNewRSSInstance(args) {
+    return new WhatsNewRSS(args);
 }
+
+function useWhatsNewRSS({ selector, ...rest }) {
+    const instanceRef = useRef(null);
+
+    useEffect(() => {
+        if (!instanceRef.current) {
+            instanceRef.current = createWhatsNewRSSInstance({ selector, ...rest });
+        }
+
+        // Cleanup function
+        return () => {
+            if (instanceRef.current && typeof instanceRef.current.destroy === 'function') {
+                instanceRef.current.destroy();
+            }
+        };
+    }, [selector, ...Object.values(rest)]); // Adjust dependencies as needed
+
+    return instanceRef.current;
+}
+
 export default useWhatsNewRSS;
 `;
 
@@ -60,9 +76,9 @@ gulp.task('generate-react-files', function (done) {
 			if (err) throw err;
 		});
 
-		gulp.src('dist/whats-new-rss.css').pipe(gulp.dest('dist/react/'))
+		gulp.src('dist/whats-new-rss.min.css').pipe(gulp.dest('dist/react/'))
 
-		data = 'import { useEffect } from "react";\nimport "./whats-new-rss.css";\n' + data
+		data = 'import { useEffect, useRef } from "react";\nimport "./whats-new-rss.min.css";\n' + data
 		data += '\n' + hookContent;
 
 		fs.writeFile('dist/react/useWhatsNewRSS.js', data, (err) => {
