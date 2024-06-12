@@ -136,9 +136,12 @@
         color: #475569;
         font-weight: 400;
         font-size: 14px;
-        line-height: 20px; }
+        line-height: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item > * {
-          margin: 12px 0; }
+          margin: 0; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item.skeleton-row {
           height: 25vh;
           margin: 40px 0;
@@ -172,10 +175,15 @@
             font-weight: 700;
             line-height: 28px;
             font-size: 20px; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h3 {
+          font-weight: 700;
+          font-size: 18px;
+          line-height: 24px; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item p {
           padding: 0 0 8px 0; }
           .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item p:last-child {
-            margin-bottom: 0; }
+            margin-bottom: 0;
+            padding-bottom: 0; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item a {
           color: #1170FF;
           text-decoration: none; }
@@ -203,7 +211,8 @@
           width: 100%; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item strong {
           font-weight: 600; }
-        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ul, .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ol {
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ul,
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ol {
           padding-inline-start: 40px; }
     .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details {
       line-height: 20px;
