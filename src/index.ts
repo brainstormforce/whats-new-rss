@@ -951,12 +951,21 @@ class WhatsNewRSSView {
 		`;
 	}
 
+	/**
+	 * Adds the target attribute to all the links of inner content.
+	 */
+	private _addTargetAttribute(content:string) {
+        const regex = /<a\b((?:(?!target=)[^>])*)>/g;
+		const emptyPTagRegex = /<p>\s*<\/p>/g
+        return content.replace(regex, '<a$1 target="_blank">').replace(emptyPTagRegex, '');
+	}
+
 	public createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']) {
 
 		const { wordLimit, moreSymbol, readMore } = options;
 
 		if (!wordLimit) {
-			return content;
+			return this._addTargetAttribute(content);
 		}
 
 		const plainText = content.replace(/<[^>]*>/g, '');
@@ -968,7 +977,7 @@ class WhatsNewRSSView {
 		}
 
 		if (wordLimit > words.length) {
-			return content;
+			return this._addTargetAttribute(content);;
 		}
 
 		if (!!readMoreLink && !!readMore?.label) {

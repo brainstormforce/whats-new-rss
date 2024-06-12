@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.4
- * Generated on: 3rd June, 2024
+ * Generated on: 12th June, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -735,10 +735,18 @@ var WhatsNewRSSView = /** @class */ (function () {
         }
         return "\n\t\t<div class=\"".concat(classes.join(' '), "\">\n\t\t\t").concat(isNewPost ? '<small class="new-post-badge">New ✨</small>' : '', "\n\t\t\t").concat(content, "\n\t\t</div>\n\t\t");
     };
+    /**
+     * Adds the target attribute to all the links of inner content.
+     */
+    WhatsNewRSSView.prototype._addTargetAttribute = function (content) {
+        var regex = /<a\b((?:(?!target=)[^>])*)>/g;
+        var emptyPTagRegex = /<p>\s*<\/p>/g;
+        return content.replace(regex, '<a$1 target="_blank">').replace(emptyPTagRegex, '');
+    };
     WhatsNewRSSView.prototype.createExcerpt = function (content, readMoreLink, options) {
         var wordLimit = options.wordLimit, moreSymbol = options.moreSymbol, readMore = options.readMore;
         if (!wordLimit) {
-            return content;
+            return this._addTargetAttribute(content);
         }
         var plainText = content.replace(/<[^>]*>/g, '');
         var words = plainText.split(/\s+/);
@@ -747,7 +755,8 @@ var WhatsNewRSSView = /** @class */ (function () {
             rawExcerpt += moreSymbol;
         }
         if (wordLimit > words.length) {
-            return content;
+            return this._addTargetAttribute(content);
+            ;
         }
         if (!!readMoreLink && !!(readMore === null || readMore === void 0 ? void 0 : readMore.label)) {
             return "<p>".concat(rawExcerpt, " <a href=\"").concat(readMoreLink, "\" target=\"_blank\" class=\"").concat(readMore.className, "\">").concat(readMore.label, "</a></p>");

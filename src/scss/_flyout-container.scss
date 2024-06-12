@@ -1,7 +1,10 @@
 $transition-ease: 0.3s ease-in-out;
 $border-color: #ccc;
 $background-color: #ffffff;
-$text-color: #94a3b8;
+$text-color: #94A3B8;
+$heading-color: #0F172A;
+$paragraph-color: #475569;
+$link-color: #1170FF;
 $z-index-overlay: 9999;
 $z-index-flyout: 99999;
 $icon-size: 25px;
@@ -16,6 +19,11 @@ $border-bottom-width: 1px;
 	width: 100%;
 	z-index: $z-index-flyout;
 	transition: visibility $transition-ease;
+	font-family: Arial, Helvetica, sans-serif;
+
+	.lightbox-trigger {
+		display: none;
+	}
 
 	&.hidden {
 		display: none;
@@ -48,7 +56,7 @@ $border-bottom-width: 1px;
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			padding: 5px 30px;
+			padding: 5px 24px;
 			border-bottom: $border-bottom-width solid $border-color;
 
 			button {
@@ -120,7 +128,11 @@ $border-bottom-width: 1px;
 
 			.whats-new-rss-flyout-inner-content-item {
 				border-bottom: 1px solid #d8dfe9;
-				padding: 15px 30px;
+				padding: 24px;
+				color: $paragraph-color;
+				font-weight: 400;
+				font-size: 14px;
+				line-height: 20px;
 
 				&.skeleton-row {
 					height: 25vh;
@@ -144,10 +156,60 @@ $border-bottom-width: 1px;
 				}
 
 				.rss-content-header {
+
+					display: flex;
+					flex-direction: column;
+					gap: 4px;
+					padding: 0 0 8px 0;
+
 					p {
 						color: $text-color;
-						margin-bottom: 5px;
+						margin: 0;
+						padding: 0;
 						font-weight: 600;
+						font-size: 12px;
+						line-height: 16px;
+					}
+
+					h2 {
+						margin: 0;
+						color: $heading-color;
+						font-weight: 700;
+						line-height: 28px;
+						font-size: 20px;
+					}
+				}
+
+				p {
+					padding: 0 0 8px 0;
+
+					&:last-child {
+						margin-bottom: 0;
+					}
+				}
+
+				a {
+					color: $link-color;
+					text-decoration: none;
+				}
+
+				figure {
+					margin: 0;
+
+					&.wp-block-embed.is-type-video {
+						position: relative;
+						width: 100%;
+						height: 0;
+						padding-bottom: 56.25%;
+					}
+
+					iframe {
+						position: absolute;
+						top: 0;
+						left: 0;
+						width: 100%;
+						height: 100%;
+						border: 0;
 					}
 				}
 
@@ -161,6 +223,14 @@ $border-bottom-width: 1px;
 				video {
 					vertical-align: middle;
 					width: 100%;
+				}
+
+				strong {
+					font-weight: 600;
+				}
+
+				ul {
+					padding-inline-start: 40px;
 				}
 			}
 		}
@@ -236,7 +306,7 @@ $border-bottom-width: 1px;
 		bottom: 0;
 		left: 0;
 		background: rgba(0, 0, 0, 0.5);
-		transition: opacity $transition-ease;
+		transition: all $transition-ease;
 	}
 
 	&.closed {
