@@ -759,7 +759,7 @@ class WhatsNewRSSFetch {
 					title: title,
 					date: !!rssDate ? +new Date(rssDate) : null,
 					postLink: link,
-					description: content,
+					description: content.replace(/<a\b((?:(?!target=)[^>])*)>/g, '<a$1 target="_blank">').replace(/<p>\s*<\/p>/g, ''),
 					children: JSON.parse(item.querySelector('children')?.innerHTML || '{}')
 				});
 			});
@@ -951,21 +951,12 @@ class WhatsNewRSSView {
 		`;
 	}
 
-	/**
-	 * Adds the target attribute to all the links of inner content.
-	 */
-	private _addTargetAttribute(content:string) {
-        const regex = /<a\b((?:(?!target=)[^>])*)>/g;
-		const emptyPTagRegex = /<p>\s*<\/p>/g
-        return content.replace(regex, '<a$1 target="_blank">').replace(emptyPTagRegex, '');
-	}
-
 	public createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']) {
 
 		const { wordLimit, moreSymbol, readMore } = options;
 
 		if (!wordLimit) {
-			return this._addTargetAttribute(content);
+			return content;
 		}
 
 		const plainText = content.replace(/<[^>]*>/g, '');
@@ -977,7 +968,7 @@ class WhatsNewRSSView {
 		}
 
 		if (wordLimit > words.length) {
-			return this._addTargetAttribute(content);;
+			return content;
 		}
 
 		if (!!readMoreLink && !!readMore?.label) {

@@ -21,11 +21,8 @@ $border-bottom-width: 1px;
 	transition: visibility $transition-ease;
 	font-family: Arial, Helvetica, sans-serif;
 
+	&.hidden,
 	.lightbox-trigger {
-		display: none;
-	}
-
-	&.hidden {
 		display: none;
 	}
 
@@ -56,16 +53,18 @@ $border-bottom-width: 1px;
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			padding: 5px 24px;
+			padding: 16px 20px 16px 24px;
 			border-bottom: $border-bottom-width solid $border-color;
 
 			button {
-				background: none;
 				border: none;
+				background: none;
 				font-size: 30px;
 				cursor: pointer;
 				color: $text-color;
 				transition: transform 0.2s ease-in-out;
+				padding: 0;
+				margin: 0;
 
 				&:hover,
 				&:focus {
@@ -76,6 +75,15 @@ $border-bottom-width: 1px;
 			.whats-new-rss-flyout-inner-header__title-icon-wrapper {
 				display: flex;
 				gap: 10px;
+
+				h3 {
+					margin: 0;
+					padding: 0;
+					color: #0F172A;
+					font-weight: 600;
+					font-size: 16px;
+					line-height: 24px
+				}
 			}
 		}
 
@@ -133,6 +141,10 @@ $border-bottom-width: 1px;
 				font-weight: 400;
 				font-size: 14px;
 				line-height: 20px;
+
+				>* {
+					margin: 12px 0;
+				}
 
 				&.skeleton-row {
 					height: 25vh;
@@ -229,7 +241,7 @@ $border-bottom-width: 1px;
 					font-weight: 600;
 				}
 
-				ul {
+				ul, ol {
 					padding-inline-start: 40px;
 				}
 			}

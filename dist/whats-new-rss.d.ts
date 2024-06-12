@@ -219,10 +219,6 @@ declare class WhatsNewRSSView {
     private createFlyOut;
     setMultiFeedTabNotificationCount(key: string, notificationCount?: number): void;
     innerContentWrapper(content: string, isNewPost?: boolean, additionalClasses?: string): string;
-    /**
-     * Adds the target attribute to all the links of inner content.
-     */
-    private _addTargetAttribute;
     createExcerpt(content: string, readMoreLink: string, options: ConstructorArgs['flyout']['excerpt']): string;
     listChildrenPosts(children: object): string;
     formatDate(date: Date): string;

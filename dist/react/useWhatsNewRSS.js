@@ -614,7 +614,7 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                                                 title: title,
                                                 date: !!rssDate ? +new Date(rssDate) : null,
                                                 postLink: link,
-                                                description: content,
+                                                description: content.replace(/<a\b((?:(?!target=)[^>])*)>/g, '<a$1 target="_blank">').replace(/<p>\s*<\/p>/g, ''),
                                                 children: JSON.parse(((_a = item.querySelector('children')) === null || _a === void 0 ? void 0 : _a.innerHTML) || '{}')
                                             });
                                         });
@@ -735,18 +735,10 @@ var WhatsNewRSSView = /** @class */ (function () {
         }
         return "\n\t\t<div class=\"".concat(classes.join(' '), "\">\n\t\t\t").concat(isNewPost ? '<small class="new-post-badge">New ✨</small>' : '', "\n\t\t\t").concat(content, "\n\t\t</div>\n\t\t");
     };
-    /**
-     * Adds the target attribute to all the links of inner content.
-     */
-    WhatsNewRSSView.prototype._addTargetAttribute = function (content) {
-        var regex = /<a\b((?:(?!target=)[^>])*)>/g;
-        var emptyPTagRegex = /<p>\s*<\/p>/g;
-        return content.replace(regex, '<a$1 target="_blank">').replace(emptyPTagRegex, '');
-    };
     WhatsNewRSSView.prototype.createExcerpt = function (content, readMoreLink, options) {
         var wordLimit = options.wordLimit, moreSymbol = options.moreSymbol, readMore = options.readMore;
         if (!wordLimit) {
-            return this._addTargetAttribute(content);
+            return content;
         }
         var plainText = content.replace(/<[^>]*>/g, '');
         var words = plainText.split(/\s+/);
@@ -755,8 +747,7 @@ var WhatsNewRSSView = /** @class */ (function () {
             rawExcerpt += moreSymbol;
         }
         if (wordLimit > words.length) {
-            return this._addTargetAttribute(content);
-            ;
+            return content;
         }
         if (!!readMoreLink && !!(readMore === null || readMore === void 0 ? void 0 : readMore.label)) {
             return "<p>".concat(rawExcerpt, " <a href=\"").concat(readMoreLink, "\" target=\"_blank\" class=\"").concat(readMore.className, "\">").concat(readMore.label, "</a></p>");
