@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.4
- * Generated on: 12th June, 2024
+ * Generated on: 13th June, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -175,10 +175,26 @@
             font-weight: 700;
             line-height: 28px;
             font-size: 20px; }
-        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h3 {
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h2 {
           font-weight: 700;
           font-size: 18px;
           line-height: 24px; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h3 {
+          font-weight: 700;
+          font-size: 16px;
+          line-height: 22px; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h4 {
+          font-weight: 700;
+          font-size: 15px;
+          line-height: 20px; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h5 {
+          font-weight: 700;
+          font-size: 14px;
+          line-height: 18px; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h6 {
+          font-weight: 700;
+          font-size: 13px;
+          line-height: 16px; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item p {
           padding: 0 0 8px 0; }
           .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item p:last-child {
