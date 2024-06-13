@@ -62,14 +62,9 @@ $border-bottom-width: 1px;
 				font-size: 30px;
 				cursor: pointer;
 				color: $text-color;
-				transition: transform 0.2s ease-in-out;
 				padding: 0;
 				margin: 0;
-
-				&:hover,
-				&:focus {
-					transform: scale(1.5);
-				}
+				box-shadow: none;
 			}
 
 			.whats-new-rss-flyout-inner-header__title-icon-wrapper {
@@ -136,14 +131,14 @@ $border-bottom-width: 1px;
 
 			.whats-new-rss-flyout-inner-content-item {
 				border-bottom: 1px solid #d8dfe9;
-				padding: 24px;
+				padding: 40px 24px;
 				color: $paragraph-color;
 				font-weight: 400;
 				font-size: 14px;
 				line-height: 20px;
 				display: flex;
 				flex-direction: column;
-				gap: 12px;
+				gap: 13px;
 
 				>* {
 					margin: 0;
@@ -174,7 +169,7 @@ $border-bottom-width: 1px;
 
 					display: flex;
 					flex-direction: column;
-					gap: 4px;
+					gap: 15px;
 					padding: 0 0 8px 0;
 
 					p {
@@ -182,7 +177,7 @@ $border-bottom-width: 1px;
 						margin: 0;
 						padding: 0;
 						font-weight: 600;
-						font-size: 12px;
+						font-size: 14px;
 						line-height: 16px;
 					}
 
@@ -205,12 +200,14 @@ $border-bottom-width: 1px;
 					font-weight: 700;
 					font-size: 16px;
 					line-height: 22px;
+					margin-top: 12px;
 				}
 
 				h4 {
 					font-weight: 700;
 					font-size: 15px;
 					line-height: 20px;
+					margin-top: 12px;
 				}
 
 				h5 {
@@ -226,7 +223,8 @@ $border-bottom-width: 1px;
 				}
 
 				p {
-					padding: 0 0 8px 0;
+					padding: 0;
+					font-size: 14px;
 
 					&:last-child {
 						margin-bottom: 0;
@@ -240,7 +238,7 @@ $border-bottom-width: 1px;
 				}
 
 				figure {
-					margin: 0;
+					margin: 10px 0;
 
 					&.wp-block-embed.is-type-video {
 						position: relative;
@@ -277,7 +275,19 @@ $border-bottom-width: 1px;
 
 				ul,
 				ol {
-					padding-inline-start: 40px;
+					padding-inline-start: 20px;
+
+					li {
+						margin-bottom: 5px;
+					}
+				}
+
+				ul {
+					list-style-type: disc;
+				}
+
+				ol {
+					list-style-type: decimal;
 				}
 			}
 		}
@@ -381,5 +391,21 @@ $border-bottom-width: 1px;
 
 	100% {
 		background-position: 200% 0;
+	}
+}
+
+@media screen and (max-width : 1024px) {
+	.whats-new-rss-flyout {
+		.whats-new-rss-flyout-contents {
+			width: 40%;
+		}
+	}
+}
+
+@media screen and (max-width : 768px) {
+	.whats-new-rss-flyout {
+		.whats-new-rss-flyout-contents {
+			width: 60%;
+		}
 	}
 }

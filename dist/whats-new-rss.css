@@ -82,11 +82,9 @@
         font-size: 30px;
         cursor: pointer;
         color: #94A3B8;
-        transition: transform 0.2s ease-in-out;
         padding: 0;
-        margin: 0; }
-        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header button:hover, .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header button:focus {
-          transform: scale(1.5); }
+        margin: 0;
+        box-shadow: none; }
       .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header .whats-new-rss-flyout-inner-header__title-icon-wrapper {
         display: flex;
         gap: 10px; }
@@ -132,14 +130,14 @@
         margin: 30px; }
       .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item {
         border-bottom: 1px solid #d8dfe9;
-        padding: 24px;
+        padding: 40px 24px;
         color: #475569;
         font-weight: 400;
         font-size: 14px;
         line-height: 20px;
         display: flex;
         flex-direction: column;
-        gap: 12px; }
+        gap: 13px; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item > * {
           margin: 0; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item.skeleton-row {
@@ -160,14 +158,14 @@
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item .rss-content-header {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 15px;
           padding: 0 0 8px 0; }
           .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item .rss-content-header p {
             color: #94A3B8;
             margin: 0;
             padding: 0;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 14px;
             line-height: 16px; }
           .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item .rss-content-header h2 {
             margin: 0;
@@ -182,11 +180,13 @@
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h3 {
           font-weight: 700;
           font-size: 16px;
-          line-height: 22px; }
+          line-height: 22px;
+          margin-top: 12px; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h4 {
           font-weight: 700;
           font-size: 15px;
-          line-height: 20px; }
+          line-height: 20px;
+          margin-top: 12px; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h5 {
           font-weight: 700;
           font-size: 14px;
@@ -196,7 +196,8 @@
           font-size: 13px;
           line-height: 16px; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item p {
-          padding: 0 0 8px 0; }
+          padding: 0;
+          font-size: 14px; }
           .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item p:last-child {
             margin-bottom: 0;
             padding-bottom: 0; }
@@ -204,7 +205,7 @@
           color: #1170FF;
           text-decoration: none; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item figure {
-          margin: 0; }
+          margin: 10px 0; }
           .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item figure.wp-block-embed.is-type-video {
             position: relative;
             width: 100%;
@@ -229,7 +230,14 @@
           font-weight: 600; }
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ul,
         .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ol {
-          padding-inline-start: 40px; }
+          padding-inline-start: 20px; }
+          .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ul li,
+          .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ol li {
+            margin-bottom: 5px; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ul {
+          list-style-type: disc; }
+        .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ol {
+          list-style-type: decimal; }
     .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-sub-version-details {
       line-height: 20px;
       font-size: 0.9em;
@@ -292,3 +300,11 @@
     background-position: -200% 0; }
   100% {
     background-position: 200% 0; } }
+
+@media screen and (max-width: 1024px) {
+  .whats-new-rss-flyout .whats-new-rss-flyout-contents {
+    width: 40%; } }
+
+@media screen and (max-width: 768px) {
+  .whats-new-rss-flyout .whats-new-rss-flyout-contents {
+    width: 60%; } }
