@@ -1,8 +1,8 @@
 /**
  * === Whats New RSS ===
  *
- * Version: 1.0.4
- * Generated on: 3rd June, 2024
+ * Version: 1.0.5
+ * Generated on: 14th June, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -614,7 +614,7 @@ var WhatsNewRSSFetch = /** @class */ (function () {
                                                 title: title,
                                                 date: !!rssDate ? +new Date(rssDate) : null,
                                                 postLink: link,
-                                                description: content,
+                                                description: content.replace(/<a\b((?:(?!target=)[^>])*)>/g, '<a$1 target="_blank">').replace(/<p>\s*<\/p>/g, ''),
                                                 children: JSON.parse(((_a = item.querySelector('children')) === null || _a === void 0 ? void 0 : _a.innerHTML) || '{}')
                                             });
                                         });

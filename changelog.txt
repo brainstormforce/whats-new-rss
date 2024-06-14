@@ -1,3 +1,7 @@
+v1.0.5
+- Improvement: Added default stylings for the flyout inner contents.
+- Improvement: Added 'target="_blank"' to all the links of inner contents in flyout.
+
 v1.0.4
 - Improvement: Made the library compatible to use with npm install.
 - Improvement: Added an option to enable/disable the inner content title link.

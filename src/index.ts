@@ -759,7 +759,7 @@ class WhatsNewRSSFetch {
 					title: title,
 					date: !!rssDate ? +new Date(rssDate) : null,
 					postLink: link,
-					description: content,
+					description: content.replace(/<a\b((?:(?!target=)[^>])*)>/g, '<a$1 target="_blank">').replace(/<p>\s*<\/p>/g, ''),
 					children: JSON.parse(item.querySelector('children')?.innerHTML || '{}')
 				});
 			});
