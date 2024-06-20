@@ -15,6 +15,7 @@
   },
   "license": "MIT",
   "scripts": {
+    "release": "yarn build && gulp release",
     "build": "rm -rf dist && tsc --sourceMap false && gulp sass:minify && gulp uglify && gulp generate-react-files && gulp headers",
     "start": "gulp sass:watch | tsc --watch"
   },
@@ -26,6 +27,7 @@
     "gulp-replace": "^1.1.4",
     "gulp-sass": "^5.1.0",
     "gulp-uglify": "^3.0.2",
+    "gulp-zip": "^6.0.0",
     "node-sass": "^9.0.0",
     "typescript": "^5.3.3"
   }

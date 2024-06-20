@@ -68,6 +68,13 @@ function handleFileHeaders() {
 		`)).pipe(gulp.dest('dist/'))
 }
 
+async function handleRelease() {
+    const zip = await import('gulp-zip').then(mod => mod.default);
+	return gulp.src('dist/*')
+		.pipe(zip('whats-new-library.zip'))
+		.pipe(gulp.dest('./'))
+}
+
 gulp.task('generate-react-files', function (done) {
 	fs.readFile('dist/whats-new-rss.js', 'utf8', (err, data) => {
 		if (err) throw err;
@@ -94,3 +101,4 @@ gulp.task('sass:minify', handleMinifyCSS);
 gulp.task('sass:watch', () => gulp.watch("src/scss/**/*.scss", handleScssBuild));
 gulp.task('uglify', handleUglifyJS);
 gulp.task('headers', handleFileHeaders);
+gulp.task('release', handleRelease);
