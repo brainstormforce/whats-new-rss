@@ -1,3 +1,7 @@
+v1.0.6
+- Improvement: Minor CSS improvements as per the UAT feedback.
+- Fix: Compatibility issue with some package bundler and CSS parser.
+
 v1.0.5
 - Improvement: Added default stylings for the flyout inner contents.
 - Improvement: Added 'target="_blank"' to all the links of inner contents in flyout.

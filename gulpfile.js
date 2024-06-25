@@ -8,7 +8,6 @@ const headerComment = require('gulp-header-comment');
 const replace = require('gulp-replace');
 
 const hookContent = `
-
 function createWhatsNewRSSInstance(args) {
     return new WhatsNewRSS(args);
 }
@@ -17,6 +16,8 @@ function useWhatsNewRSS({ selector, ...rest }) {
     const instanceRef = useRef(null);
 
     useEffect(() => {
+        addStyleIfNotExists();
+
         if (!instanceRef.current) {
             instanceRef.current = createWhatsNewRSSInstance({ selector, ...rest });
         }
@@ -68,6 +69,13 @@ function handleFileHeaders() {
 		`)).pipe(gulp.dest('dist/'))
 }
 
+async function handleRelease() {
+	const zip = await import('gulp-zip').then(mod => mod.default);
+	return gulp.src('dist/*')
+		.pipe(zip('whats-new-library.zip'))
+		.pipe(gulp.dest('./'))
+}
+
 gulp.task('generate-react-files', function (done) {
 	fs.readFile('dist/whats-new-rss.js', 'utf8', (err, data) => {
 		if (err) throw err;
@@ -76,14 +84,35 @@ gulp.task('generate-react-files', function (done) {
 			if (err) throw err;
 		});
 
-		gulp.src('dist/whats-new-rss.min.css').pipe(gulp.dest('dist/react/'))
+		data = 'import { useEffect, useRef } from "react";\n' + data
 
-		data = 'import { useEffect, useRef } from "react";\nimport "./whats-new-rss.min.css";\n' + data
-		data += '\n' + hookContent;
-
-		fs.writeFile('dist/react/useWhatsNewRSS.js', data, (err) => {
+		fs.readFile('dist/whats-new-rss.min.css', 'utf8', (err, cssData) => {
 			if (err) throw err;
-			done();
+
+			const _hookContents = `
+async function getCSS() {
+    return \`${cssData}\`;
+}
+
+async function addStyleIfNotExists() {
+    const styleId = 'whats-new-rss-styles';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = await getCSS();
+        document.head.appendChild(style);
+    }
+}
+
+${hookContent}
+`;
+
+			data += _hookContents;
+
+			fs.writeFile('dist/react/useWhatsNewRSS.js', data, (err) => {
+				if (err) throw err;
+				done();
+			});
 		});
 	});
 });
@@ -94,3 +123,4 @@ gulp.task('sass:minify', handleMinifyCSS);
 gulp.task('sass:watch', () => gulp.watch("src/scss/**/*.scss", handleScssBuild));
 gulp.task('uglify', handleUglifyJS);
 gulp.task('headers', handleFileHeaders);
+gulp.task('release', handleRelease);
