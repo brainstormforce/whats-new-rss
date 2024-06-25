@@ -131,7 +131,7 @@ $border-bottom-width: 1px;
 
 			.whats-new-rss-flyout-inner-content-item {
 				border-bottom: 1px solid #d8dfe9;
-				padding: 40px 24px;
+				padding: 30px 24px;
 				color: $paragraph-color;
 				font-weight: 400;
 				font-size: 14px;
@@ -405,7 +405,7 @@ $border-bottom-width: 1px;
 @media screen and (max-width : 768px) {
 	.whats-new-rss-flyout {
 		.whats-new-rss-flyout-contents {
-			width: 60%;
+			width: 85%;
 		}
 	}
 }
