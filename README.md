@@ -83,6 +83,7 @@ The `WhatsNewRSS` class accepts the following configuration options:
   - `label` (string, optional): Label for the "View All" button.
 - `triggerButton` (object, optional): Configuration for the trigger button.
   - `icon` (string, required): SVG code for the trigger button icon.
+  - `label` (string, optional): Label for the trigger button. Added right after trigger button icon. Supports HTML as well.
   - `beforeBtn` (string, optional): HTML code to be inserted before the trigger button.
   - `afterBtn` (string, optional): HTML code to be inserted after the trigger button.
   - `className` (string, optional): Additional CSS class for the trigger button.

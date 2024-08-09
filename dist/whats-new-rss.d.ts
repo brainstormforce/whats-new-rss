@@ -1,8 +1,8 @@
 /**
  * === Whats New RSS ===
  *
- * Version: 1.0.6
- * Generated on: 25th June, 2024
+ * Version: 1.0.7
+ * Generated on: 9th August, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -19,6 +19,7 @@ type ConstructorArgs = {
         label?: string;
     };
     triggerButton?: {
+        label?: string;
         icon?: string;
         beforeBtn?: string;
         afterBtn?: string;
