@@ -1,3 +1,6 @@
+v1.0.7
+- Improvement: Code quality improvements.
+
 v1.0.6
 - Improvement: Minor CSS improvements as per the UAT feedback.
 - Fix: Compatibility issue with some package bundler and CSS parser.
