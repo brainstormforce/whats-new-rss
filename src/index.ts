@@ -195,7 +195,7 @@ class WhatsNewRSS {
 	 * @param {ConstructorArgs} args
 	 */
 	private validateArgs(args: ConstructorArgs) {
-		["rssFeedURL", "selector"].map((requiredArg) => {
+		["rssFeedURL", "selector"].forEach((requiredArg) => {
 			if (!args[requiredArg]) {
 				throw new Error(`${requiredArg} is a required argument. It cannot be empty or undefined.`);
 			}
@@ -392,7 +392,8 @@ class WhatsNewRSS {
 						this.RSS_View_Instance.setNotification(this.notificationsCount);
 					}
 				});
-			});
+			})
+			.catch(console.error);
 
 	}
 
@@ -500,7 +501,8 @@ class WhatsNewRSS {
 						}
 					}
 
-				});
+				})
+				.catch(console.error);
 
 		}
 
@@ -522,7 +524,8 @@ class WhatsNewRSS {
 			this.getArgs().flyout.onOpen(this);
 
 			if (!this.isMultiFeedRSS()) {
-				return injectContents(null);
+				injectContents(null);
+				return;
 			}
 
 			const navBtns = multiFeedNav.querySelectorAll('button');
@@ -554,7 +557,8 @@ class WhatsNewRSS {
 							}
 
 							this.multiHasNewFeeds[currentFeedKey] = false;
-						});
+						})
+						.catch(console.error);
 
 					navBtns.forEach(navBtn => {
 
