@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.7
- * Generated on: 9th August, 2024
+ * Generated on: 8th October, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -151,7 +151,7 @@ var WhatsNewRSS = /** @class */ (function () {
      * @param {ConstructorArgs} args
      */
     WhatsNewRSS.prototype.validateArgs = function (args) {
-        ["rssFeedURL", "selector"].map(function (requiredArg) {
+        ["rssFeedURL", "selector"].forEach(function (requiredArg) {
             if (!args[requiredArg]) {
                 throw new Error("".concat(requiredArg, " is a required argument. It cannot be empty or undefined."));
             }
@@ -321,7 +321,8 @@ var WhatsNewRSS = /** @class */ (function () {
                                         _this.RSS_View_Instance.setNotification(_this.notificationsCount);
                                     }
                                 });
-                            })];
+                            })
+                                .catch(console.error)];
                     case 2:
                         _a.sent();
                         return [2 /*return*/];
@@ -396,7 +397,8 @@ var WhatsNewRSS = /** @class */ (function () {
                         }
                     }
                 }
-            });
+            })
+                .catch(console.error);
         };
         /**
          * Open flyout on trigger button click.
@@ -411,7 +413,8 @@ var WhatsNewRSS = /** @class */ (function () {
             document.body.classList.add('whats-new-rss-is-active');
             _this.getArgs().flyout.onOpen(_this);
             if (!_this.isMultiFeedRSS()) {
-                return injectContents(null);
+                injectContents(null);
+                return;
             }
             var navBtns = multiFeedNav.querySelectorAll('button');
             navBtns.forEach(function (navBtn) {
@@ -433,7 +436,8 @@ var WhatsNewRSS = /** @class */ (function () {
                             }
                         }
                         _this.multiHasNewFeeds[currentFeedKey] = false;
-                    });
+                    })
+                        .catch(console.error);
                     navBtns.forEach(function (navBtn) {
                         navBtn.classList.remove('selected');
                         var feedKey = navBtn.dataset.feedKey;
