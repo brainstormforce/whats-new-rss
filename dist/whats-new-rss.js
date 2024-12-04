@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.0.7
- * Generated on: 8th October, 2024
+ * Generated on: 4th December, 2024
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -27,8 +27,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -56,6 +56,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var WhatsNewRSSDefaultArgs = {
     rssFeedURL: '',
     selector: '',
+    uniqueKey: '',
     loaderIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"xMidYMid\">\n\t<circle cx=\"50\" cy=\"50\" fill=\"none\" stroke=\"#9f9f9f\" stroke-width=\"10\" r=\"35\" stroke-dasharray=\"164.93361431346415 56.97787143782138\">\n\t\t<animateTransform attributeName=\"transform\" type=\"rotate\" repeatCount=\"indefinite\" dur=\"1s\" values=\"0 50 50;360 50 50\" keyTimes=\"0;1\"></animateTransform>\n\t</circle>\n\t</svg>",
     viewAll: {
         link: '',
@@ -151,7 +152,7 @@ var WhatsNewRSS = /** @class */ (function () {
      * @param {ConstructorArgs} args
      */
     WhatsNewRSS.prototype.validateArgs = function (args) {
-        ["rssFeedURL", "selector"].forEach(function (requiredArg) {
+        ["rssFeedURL", "selector", "uniqueKey"].forEach(function (requiredArg) {
             if (!args[requiredArg]) {
                 throw new Error("".concat(requiredArg, " is a required argument. It cannot be empty or undefined."));
             }
@@ -209,7 +210,7 @@ var WhatsNewRSS = /** @class */ (function () {
      * Creates unique ID for current instance, that can be used by the library elements.
      */
     WhatsNewRSS.prototype.setID = function () {
-        var data = [this.getArgs().selector];
+        var data = [this.getArgs().selector, this.getArgs().uniqueKey];
         var rssFeedURL = this.getArgs().rssFeedURL;
         if (Array.isArray(rssFeedURL)) {
             rssFeedURL.forEach(function (_rssFeedURL) {
@@ -219,7 +220,7 @@ var WhatsNewRSS = /** @class */ (function () {
         else {
             data.push(rssFeedURL);
         }
-        this.ID = btoa(data.join('-')).slice(-12).replace(/=/g, '');
+        this.ID = btoa(data.join('-')).slice(-12).replace(/=/g, '') + '-' + this.getArgs().uniqueKey;
     };
     /**
      * Whether or not multiple feed urls is provided or not.
@@ -266,34 +267,32 @@ var WhatsNewRSS = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, Promise.all(this.getRSSFeedURLs().map(function (_a) {
-                            var key = _a.key;
-                            return __awaiter(_this, void 0, void 0, function () {
-                                var lastPostUnixTime;
-                                return __generator(this, function (_b) {
-                                    switch (_b.label) {
-                                        case 0:
-                                            lastPostUnixTime = 0;
-                                            if (!('function' === typeof this.getArgs().notification.getLastPostUnixTime)) return [3 /*break*/, 2];
-                                            return [4 /*yield*/, this.getArgs().notification.getLastPostUnixTime(key, this)];
-                                        case 1:
-                                            lastPostUnixTime = _b.sent();
-                                            return [3 /*break*/, 3];
-                                        case 2:
-                                            lastPostUnixTime = WhatsNewRSSCacheUtils.getLastPostUnixTime(key);
-                                            _b.label = 3;
-                                        case 3:
-                                            if (this.isMultiFeedRSS()) {
-                                                this.multiLastPostUnixTime[key] = +lastPostUnixTime;
-                                            }
-                                            else {
-                                                this.lastPostUnixTime = +lastPostUnixTime;
-                                            }
-                                            return [2 /*return*/];
-                                    }
-                                });
+                    case 0: return [4 /*yield*/, Promise.all(this.getRSSFeedURLs().map(function (_a) { return __awaiter(_this, [_a], void 0, function (_b) {
+                            var lastPostUnixTime;
+                            var key = _b.key;
+                            return __generator(this, function (_c) {
+                                switch (_c.label) {
+                                    case 0:
+                                        lastPostUnixTime = 0;
+                                        if (!('function' === typeof this.getArgs().notification.getLastPostUnixTime)) return [3 /*break*/, 2];
+                                        return [4 /*yield*/, this.getArgs().notification.getLastPostUnixTime(key, this)];
+                                    case 1:
+                                        lastPostUnixTime = _c.sent();
+                                        return [3 /*break*/, 3];
+                                    case 2:
+                                        lastPostUnixTime = WhatsNewRSSCacheUtils.getLastPostUnixTime(key);
+                                        _c.label = 3;
+                                    case 3:
+                                        if (this.isMultiFeedRSS()) {
+                                            this.multiLastPostUnixTime[key] = +lastPostUnixTime;
+                                        }
+                                        else {
+                                            this.lastPostUnixTime = +lastPostUnixTime;
+                                        }
+                                        return [2 /*return*/];
+                                }
                             });
-                        }))];
+                        }); }))];
                     case 1:
                         _a.sent();
                         return [4 /*yield*/, this.RSS_Fetch_Instance.fetchData()

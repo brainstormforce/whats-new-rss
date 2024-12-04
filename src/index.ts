@@ -5,6 +5,7 @@ type ConstructorArgs = {
 		url: string,
 	}>,
 	selector: string,
+	uniqueKey: string,
 	loaderIcon?: string,
 	viewAll?: {
 		link: string,
@@ -50,6 +51,7 @@ type ConstructorArgs = {
 const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 	rssFeedURL: '',
 	selector: '',
+	uniqueKey: '',
 	loaderIcon: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
 	<circle cx="50" cy="50" fill="none" stroke="#9f9f9f" stroke-width="10" r="35" stroke-dasharray="164.93361431346415 56.97787143782138">
 		<animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform>
@@ -195,7 +197,7 @@ class WhatsNewRSS {
 	 * @param {ConstructorArgs} args
 	 */
 	private validateArgs(args: ConstructorArgs) {
-		["rssFeedURL", "selector"].forEach((requiredArg) => {
+		["rssFeedURL", "selector", "uniqueKey"].forEach((requiredArg) => {
 			if (!args[requiredArg]) {
 				throw new Error(`${requiredArg} is a required argument. It cannot be empty or undefined.`);
 			}
@@ -282,7 +284,7 @@ class WhatsNewRSS {
 	 * Creates unique ID for current instance, that can be used by the library elements.
 	 */
 	private setID() {
-		const data = [this.getArgs().selector];
+		const data = [this.getArgs().selector, this.getArgs().uniqueKey];
 		const rssFeedURL = this.getArgs().rssFeedURL;
 
 		if (Array.isArray(rssFeedURL)) {
@@ -293,7 +295,7 @@ class WhatsNewRSS {
 			data.push(rssFeedURL);
 		}
 
-		this.ID = btoa(data.join('-')).slice(-12).replace(/=/g, '');
+		this.ID = btoa(data.join('-')).slice(-12).replace(/=/g, '') + '-' + this.getArgs().uniqueKey;
 	}
 
 	/**
