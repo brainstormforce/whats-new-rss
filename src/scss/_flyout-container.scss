@@ -186,14 +186,14 @@ $border-bottom-width: 1px;
 
       .whats-new-rss-flyout-inner-content-item {
         border-bottom: 1px solid #d8dfe9;
-        padding: 18px 24px;
+        padding: 24px 24px;
         color: $paragraph-color;
         font-weight: 400;
         font-size: 14px;
         line-height: 20px;
         display: flex;
         flex-direction: column;
-        gap: 13px;
+        gap: 12px;
 
         .wp-smiley {
           display: inline-block;
@@ -204,6 +204,45 @@ $border-bottom-width: 1px;
 
         > * {
           margin: 0;
+        }
+
+        h2 {
+          font-size: 22px;
+          font-weight: 700;
+          line-height: 1.5em;
+          margin-bottom: 15px;
+          padding-top: 12px;
+          padding-bottom: 4px;
+        }
+        h3 {
+          font-size: 20px;
+          font-weight: 700;
+          line-height: 1.5em;
+          padding-top: 12px;
+          padding-bottom: 4px;
+        }
+        h4 {
+          font-size: 18px;
+          font-weight: 700;
+          line-height: 1.5em;
+          padding-top: 12px;
+          padding-bottom: 4px;
+        }
+        h5 {
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 1.5em;
+          margin-bottom: 15px;
+          padding-top: 12px;
+          padding-bottom: 4px;
+        }
+        h6 {
+          font-size: 13px;
+          font-weight: 700;
+          line-height: 1.5em;
+          margin-bottom: 15px;
+          padding-top: 12px;
+          padding-bottom: 4px;
         }
 
         &.skeleton-row {
@@ -230,7 +269,7 @@ $border-bottom-width: 1px;
         .rss-content-header {
           display: flex;
           flex-direction: column;
-          gap: 15px;
+          gap: 4px;
           padding: 0 0 8px 0;
 
           p {
@@ -249,8 +288,8 @@ $border-bottom-width: 1px;
             color: $heading-color;
             font-weight: 700;
             line-height: 1.5em;
-            // margin-bottom: 20px;
             font-size: 24px;
+            padding: 0;
           }
         }
 
@@ -312,7 +351,6 @@ $border-bottom-width: 1px;
         ol {
           padding-inline-start: 20px;
           margin-left: 10px;
-          margin-bottom: 15px;
 
           li {
             font-size: 15px;
