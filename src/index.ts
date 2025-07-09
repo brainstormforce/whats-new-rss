@@ -1056,3 +1056,5 @@ class WhatsNewRSSView {
 		}
 	}
 }
+
+module.exports = WhatsNewRSS;
