@@ -1,3 +1,9 @@
+v1.1.0
+- New: Added a new required option `uniqueKey` to make sure Whats New Library's generated id stays unique as per different plugins. More info: https://github.com/brainstormforce/whats-new-rss?tab=readme-ov-file#configuration 
+- New: Added a new option for trigger button label. More info: https://github.com/brainstormforce/whats-new-rss?tab=readme-ov-file#configuration 
+- Improvement: Code quality and default css spacings improvements.
+- Fix: Fixed glitch issue that happens due to overflow:hidden css added when opening Whats New Drawer opens.
+
 v1.0.6
 - Improvement: Minor CSS improvements as per the UAT feedback.
 - Fix: Compatibility issue with some package bundler and CSS parser.
