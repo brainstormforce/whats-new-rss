@@ -515,13 +515,27 @@ class WhatsNewRSS {
 		triggerButton.addEventListener("click", (e) => {
 			e.preventDefault();
 
+			const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
 			this.getArgs().triggerButton.onClick(this);
 
 			this.RSS_View_Instance.setIsLoading(true);
 
+			flyout.removeAttribute('style');
 			flyout.classList.remove('closed');
 			flyout.classList.add('open');
 			document.body.classList.add('whats-new-rss-is-active');
+
+			// Fix glitch issue that happens when opening drawers.
+            if (!!scrollBarWidth) {
+                const styleSheet = document.getElementById('whats-new-rss-styles') as HTMLStyleElement;
+                if (styleSheet?.sheet) {
+                    styleSheet.sheet.insertRule(
+                    `.whats-new-rss-is-active { background-color: yellow; padding-right: ${scrollBarWidth}px; }`,
+                    styleSheet.sheet.cssRules.length
+                    );
+                }
+            }
 
 			this.getArgs().flyout.onOpen(this);
 
@@ -904,6 +918,7 @@ class WhatsNewRSSView {
 		flyoutWrapper.setAttribute('id', this.getFlyoutID());
 		flyoutWrapper.setAttribute('class', wrapperClasses.join(' '));
 		flyoutWrapper.setAttribute('role', 'dialog');
+		flyoutWrapper.setAttribute('style', 'visibility:hidden');
 
 		flyoutWrapper.innerHTML = `
 		<div class="whats-new-rss-flyout-contents">
@@ -1082,3 +1097,5 @@ class WhatsNewRSSView {
 		}
 	}
 }
+
+module.exports = WhatsNewRSS;

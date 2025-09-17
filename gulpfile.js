@@ -80,11 +80,11 @@ gulp.task('generate-react-files', function (done) {
 	fs.readFile('dist/whats-new-rss.js', 'utf8', (err, data) => {
 		if (err) throw err;
 
-		fs.mkdir('dist/react/', function () {
-			if (err) throw err;
+		fs.mkdir('dist/react/', { recursive: true }, function (err) {
+			if (err && err.code !== 'EEXIST') throw err;
 		});
 
-		data = 'import { useEffect, useRef } from "react";\n' + data
+		data = 'import { useEffect, useRef } from "react";\n' + data.replace(/module\.exports\s*=\s*[^;]+;?\s*$/m, '')
 
 		fs.readFile('dist/whats-new-rss.min.css', 'utf8', (err, cssData) => {
 			if (err) throw err;

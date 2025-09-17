@@ -20,6 +20,7 @@
     "start": "gulp sass:watch | tsc --watch"
   },
   "devDependencies": {
+    "@types/webpack": "^5.28.5",
     "gulp": "^4.0.2",
     "gulp-clean-css": "^4.3.0",
     "gulp-header-comment": "^0.10.0",
