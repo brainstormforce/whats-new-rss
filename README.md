@@ -41,6 +41,7 @@ export default YourComponent = () => {
 	useWhatsNewRSS({
 		rssFeedURL: "https://wpastra.com/whats-new/feed/",
 		selector: 'YOUR_CONTAINER_SELECTOR',
+		uniqueKey: 'YOUR_UNIQUE_KEY', //  // Your plugin slug or platform name in slug format. Eg: modern-cart-woo
 		// Additional configuration options (optional)
 	});
 
@@ -56,6 +57,7 @@ export default YourComponent = () => {
 const rss = new WhatsNewRSS({
   rssFeedURL: 'YOUR_RSS_FEED_URL',
   selector: 'YOUR_CONTAINER_SELECTOR',
+  uniqueKey: 'YOUR_UNIQUE_KEY', //  // Your plugin slug or platform name in slug format. Eg: modern-cart-woo
   // Additional configuration options (optional)
 });
 ```
@@ -77,6 +79,7 @@ The `WhatsNewRSS` class accepts the following configuration options:
 
 - `rssFeedURL` (string | Array, required): URL of the RSS feed.
 - `selector` (string, required): CSS selector for the container where the library will be rendered.
+- `uniqueKey` (string, required): Unique key as per your plugin or platform slug.
 - `loaderIcon` (string, optional): SVG code for the loader icon.
 - `viewAll` (object, optional): Configuration for the "View All" button.
   - `link` (string, required): Link to the full feed.
@@ -126,6 +129,7 @@ The `WhatsNewRSS` class provides the following methods:
 const rss = new WhatsNewRSS({
   rssFeedURL: 'YOUR_RSS_FEED_URL',
   selector: '#whats-new-container',
+  uniqueKey: 'modern-cart-woo',  // Your plugin slug or platform name in slug format.
 });
 ```
 
@@ -156,6 +160,7 @@ const rss = new WhatsNewRSS({
 		}
 	],
 	selector: '#whats-new-container',
+	uniqueKey: 'modern-cart-woo',  // Your plugin slug or platform name in slug format.
 });
 ```
 
@@ -165,6 +170,7 @@ const rss = new WhatsNewRSS({
 const rss = new WhatsNewRSS({
   rssFeedURL: 'YOUR_RSS_FEED_URL',
   selector: '#whats-new-container',
+  uniqueKey: 'modern-cart-woo',  // Your plugin slug or platform name in slug format.
   loaderIcon: '<your-custom-loader-svg>',
   viewAll: {
 	link: 'FULL_FEED_LINK', // When provided, the user will see a button by the label ( which we provide at viewAll > label ) at the end of the posts list.
@@ -252,6 +258,7 @@ add_action( 'wp_ajax_astra_debugger', function() {
 const rss = new WhatsNewRSS({
   rssFeedURL: 'https://zipwp.com/whats-new/feed',
   selector: '#ast-hf-menu-1',
+  uniqueKey: 'modern-cart-woo',  // Your plugin slug or platform name in slug format.
   notification: {
 	setLastPostUnixTime(unixtime) {
 	  fetch(`http://YOUR_WEBSITE_DOMAIN/wp-admin/admin-ajax.php?action=YOUR_AJAX_ACTION&unixtime=${unixtime}`);
@@ -318,6 +325,7 @@ export default function YourExampleComponent() {
 	useWhatsNewRSS({
 		rssFeedURL: 'https://wpastra.com/product/astra-theme/feed/',
 		selector: '#container',
+		uniqueKey: 'modern-cart-woo', // Your plugin slug or platform name in slug format.
 	});
 
 	return (
