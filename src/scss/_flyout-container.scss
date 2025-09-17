@@ -259,10 +259,11 @@ $border-bottom-width: 1px;
           .new-post-badge {
             background: #ff6c0a;
             border-radius: 4px;
-            top: 12px;
-            right: 12px;
+            top: 22px;
+            right: 24px;
             padding: 0 4px;
             color: #fff;
+            position: absolute;
           }
         }
 

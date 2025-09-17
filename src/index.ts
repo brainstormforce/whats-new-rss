@@ -5,12 +5,14 @@ type ConstructorArgs = {
 		url: string,
 	}>,
 	selector: string,
+	uniqueKey: string,
 	loaderIcon?: string,
 	viewAll?: {
 		link: string,
 		label?: string,
 	},
 	triggerButton?: {
+		label?: string,
 		icon?: string,
 		beforeBtn?: string,
 		afterBtn?: string,
@@ -49,6 +51,7 @@ type ConstructorArgs = {
 const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 	rssFeedURL: '',
 	selector: '',
+	uniqueKey: '',
 	loaderIcon: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
 	<circle cx="50" cy="50" fill="none" stroke="#9f9f9f" stroke-width="10" r="35" stroke-dasharray="164.93361431346415 56.97787143782138">
 		<animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform>
@@ -59,6 +62,7 @@ const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 		label: 'View All',
 	},
 	triggerButton: {
+		label: '',
 		icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.61703 13.1998C8.04294 13.1503 7.46192 13.125 6.875 13.125H6.25C4.17893 13.125 2.5 11.4461 2.5 9.375C2.5 7.30393 4.17893 5.625 6.25 5.625H6.875C7.46192 5.625 8.04294 5.59972 8.61703 5.55018M8.61703 13.1998C8.82774 14.0012 9.1031 14.7764 9.43719 15.5195C9.64341 15.9782 9.48685 16.5273 9.05134 16.7787L8.50441 17.0945C8.04492 17.3598 7.45466 17.1921 7.23201 16.7106C6.70983 15.5811 6.30451 14.3866 6.03155 13.1425M8.61703 13.1998C8.29598 11.9787 8.125 10.6968 8.125 9.375C8.125 8.05316 8.29598 6.77125 8.61703 5.55018M8.61703 13.1998C11.25 13.427 13.737 14.1643 15.9789 15.3124M8.61703 5.55018C11.25 5.323 13.737 4.58569 15.9789 3.43757M15.9789 3.43757C15.8808 3.12162 15.7751 2.80903 15.662 2.5M15.9789 3.43757C16.4247 4.87356 16.7131 6.37885 16.8238 7.93326M15.9789 15.3124C15.8808 15.6284 15.7751 15.941 15.662 16.25M15.9789 15.3124C16.4247 13.8764 16.7131 12.3711 16.8238 10.8167M16.8238 7.93326C17.237 8.2772 17.5 8.79539 17.5 9.375C17.5 9.95461 17.237 10.4728 16.8238 10.8167M16.8238 7.93326C16.8578 8.40942 16.875 8.8902 16.875 9.375C16.875 9.8598 16.8578 10.3406 16.8238 10.8167" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 		beforeBtn: '',
 		afterBtn: '',
@@ -193,7 +197,7 @@ class WhatsNewRSS {
 	 * @param {ConstructorArgs} args
 	 */
 	private validateArgs(args: ConstructorArgs) {
-		["rssFeedURL", "selector"].map((requiredArg) => {
+		["rssFeedURL", "selector", "uniqueKey"].forEach((requiredArg) => {
 			if (!args[requiredArg]) {
 				throw new Error(`${requiredArg} is a required argument. It cannot be empty or undefined.`);
 			}
@@ -280,7 +284,7 @@ class WhatsNewRSS {
 	 * Creates unique ID for current instance, that can be used by the library elements.
 	 */
 	private setID() {
-		const data = [this.getArgs().selector];
+		const data = [this.getArgs().selector, this.getArgs().uniqueKey];
 		const rssFeedURL = this.getArgs().rssFeedURL;
 
 		if (Array.isArray(rssFeedURL)) {
@@ -291,7 +295,7 @@ class WhatsNewRSS {
 			data.push(rssFeedURL);
 		}
 
-		this.ID = btoa(data.join('-')).slice(-12).replace(/=/g, '');
+		this.ID = btoa(data.join('-')).slice(-12).replace(/=/g, '') + '-' + this.getArgs().uniqueKey;
 	}
 
 	/**
@@ -390,7 +394,8 @@ class WhatsNewRSS {
 						this.RSS_View_Instance.setNotification(this.notificationsCount);
 					}
 				});
-			});
+			})
+			.catch(console.error);
 
 	}
 
@@ -498,7 +503,8 @@ class WhatsNewRSS {
 						}
 					}
 
-				});
+				})
+				.catch(console.error);
 
 		}
 
@@ -509,18 +515,33 @@ class WhatsNewRSS {
 		triggerButton.addEventListener("click", (e) => {
 			e.preventDefault();
 
+			const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
 			this.getArgs().triggerButton.onClick(this);
 
 			this.RSS_View_Instance.setIsLoading(true);
 
+			flyout.removeAttribute('style');
 			flyout.classList.remove('closed');
 			flyout.classList.add('open');
 			document.body.classList.add('whats-new-rss-is-active');
 
+			// Fix glitch issue that happens when opening drawers.
+            if (!!scrollBarWidth) {
+                const styleSheet = document.getElementById('whats-new-rss-styles') as HTMLStyleElement;
+                if (styleSheet?.sheet) {
+                    styleSheet.sheet.insertRule(
+                    `.whats-new-rss-is-active { background-color: yellow; padding-right: ${scrollBarWidth}px; }`,
+                    styleSheet.sheet.cssRules.length
+                    );
+                }
+            }
+
 			this.getArgs().flyout.onOpen(this);
 
 			if (!this.isMultiFeedRSS()) {
-				return injectContents(null);
+				injectContents(null);
+				return;
 			}
 
 			const navBtns = multiFeedNav.querySelectorAll('button');
@@ -552,7 +573,8 @@ class WhatsNewRSS {
 							}
 
 							this.multiHasNewFeeds[currentFeedKey] = false;
-						});
+						})
+						.catch(console.error);
 
 					navBtns.forEach(navBtn => {
 
@@ -833,14 +855,32 @@ class WhatsNewRSSView {
 
 	private createTriggerButton() {
 
-		let button = `
-		${this.RSS.getArgs().triggerButton.beforeBtn}
-		<a class="whats-new-rss-trigger-button" id="${this.getTriggerButtonID()}">
-			${this.RSS.getArgs().triggerButton.icon}
-			<div class="whats-new-rss-notification-badge hide">0</div>
-		</a>
-		${this.RSS.getArgs().triggerButton.afterBtn}
-		`;
+		let button = '';
+		const label = this.RSS.getArgs().triggerButton.label;
+
+		if (!!label) {
+			button = `
+			${this.RSS.getArgs().triggerButton.beforeBtn}
+			<a class="whats-new-rss-trigger-button has-label" id="${this.getTriggerButtonID()}">
+				<div class="icon-badge">
+					${this.RSS.getArgs().triggerButton.icon}
+					<div class="whats-new-rss-notification-badge hide">0</div>
+				</div>
+				${label}
+			</a>
+			${this.RSS.getArgs().triggerButton.afterBtn}
+			`;
+		} else {
+			button = `
+			${this.RSS.getArgs().triggerButton.beforeBtn}
+			<a class="whats-new-rss-trigger-button" id="${this.getTriggerButtonID()}">
+				${this.RSS.getArgs().triggerButton.icon}
+				<div class="whats-new-rss-notification-badge hide">0</div>
+			</a>
+			${this.RSS.getArgs().triggerButton.afterBtn}
+			`;
+		}
+
 
 		this.RSS.getElement().innerHTML += button;
 	}
@@ -878,6 +918,7 @@ class WhatsNewRSSView {
 		flyoutWrapper.setAttribute('id', this.getFlyoutID());
 		flyoutWrapper.setAttribute('class', wrapperClasses.join(' '));
 		flyoutWrapper.setAttribute('role', 'dialog');
+		flyoutWrapper.setAttribute('style', 'visibility:hidden');
 
 		flyoutWrapper.innerHTML = `
 		<div class="whats-new-rss-flyout-contents">

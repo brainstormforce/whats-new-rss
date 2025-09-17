@@ -1,8 +1,8 @@
 /**
  * === Whats New RSS ===
  *
- * Version: 1.0.6
- * Generated on: 9th July, 2025
+ * Version: 1.0.7
+ * Generated on: 17th September, 2025
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -13,12 +13,14 @@ type ConstructorArgs = {
         url: string;
     }>;
     selector: string;
+    uniqueKey: string;
     loaderIcon?: string;
     viewAll?: {
         link: string;
         label?: string;
     };
     triggerButton?: {
+        label?: string;
         icon?: string;
         beforeBtn?: string;
         afterBtn?: string;
@@ -195,7 +197,7 @@ declare class WhatsNewRSSFetch {
     fetchData(): Promise<{
         [key: string]: {
             title: string;
-            date: number;
+            date: number | null;
             postLink: string;
             description: string;
             children: object;
