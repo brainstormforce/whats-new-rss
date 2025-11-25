@@ -1,10 +1,11 @@
 $transition-ease: 0.3s ease-in-out;
-$border-color: #ccc;
+$border-color: #e5e7eb;
 $background-color: #ffffff;
-$text-color: #94a3b8;
-$heading-color: #0f172a;
-$paragraph-color: #475569;
+$text-color: #6B7280;
+$heading-color: #111827;
+$paragraph-color: #374151;
 $link-color: #1170ff;
+$button-color: #374151;
 $z-index-overlay: 9999;
 $z-index-flyout: 99999;
 $icon-size: 25px;
@@ -19,14 +20,20 @@ $border-bottom-width: 1px;
   width: 100%;
   z-index: $z-index-flyout;
   transition: visibility $transition-ease;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Figtree", sans-serif;
   height: 100vh;
 
   font-size: 15px;
   font-weight: 400;
   line-height: 20px;
-  color: #475569;
+  color: $paragraph-color;
   margin-bottom: 5px;
+
+  & *,
+  ::after,
+  ::before {
+    box-sizing: border-box;
+  }
 
   &.hidden,
   .lightbox-trigger {
@@ -46,13 +53,13 @@ $border-bottom-width: 1px;
   }
 
   p {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 400;
-    line-height: 1.5em;
-    color: #475569;
+    line-height: 20px;
+    color: $paragraph-color;
     margin-bottom: 15px;
     a {
-      color: #1170ff;
+      color: $link-color;
     }
   }
 
@@ -107,15 +114,23 @@ $border-bottom-width: 1px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 18px 24px !important;
+      padding: 16px !important;
       border-bottom: $border-bottom-width solid $border-color;
+
+      [id^="whats-new-rss-flyout-close-"] {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
       button {
         border: none;
         background: none;
         font-size: 30px;
         cursor: pointer;
-        color: $text-color;
+        color: $heading-color;
         padding: 0;
         margin: 0;
         box-shadow: none;
@@ -124,13 +139,14 @@ $border-bottom-width: 1px;
       .whats-new-rss-flyout-inner-header__title-icon-wrapper {
         display: flex;
         gap: 10px;
+        padding: 0 4px;
 
         h3 {
           margin: 0;
           padding: 0;
-          color: #0f172a;
+          color: $heading-color;
           font-weight: 600;
-          font-size: 20px;
+          font-size: 16px;
           line-height: 24px;
           margin-bottom: 0 !important;
         }
@@ -186,14 +202,33 @@ $border-bottom-width: 1px;
 
       .whats-new-rss-flyout-inner-content-item {
         border-bottom: 1px solid #d8dfe9;
-        padding: 24px 24px;
+        padding: 20px;
         color: $paragraph-color;
         font-weight: 400;
         font-size: 14px;
         line-height: 20px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        
+        > :nth-child( n + 1 ) {
+          margin: 8px 0 8px 0;
+        }
+
+        > :first-child {
+          margin-top: 0;
+        }
+
+        > :nth-child( n + 1 ):is( ul ) {
+          margin-top: 0;
+        }
+
+        > :nth-child( n + 1 ):is( div ):has( figure ) {
+          margin-bottom: 12px;
+        }
+
+        figure, img {
+          margin: 0 !important;
+        }
 
         .wp-smiley {
           display: inline-block;
@@ -208,7 +243,7 @@ $border-bottom-width: 1px;
 
         h2 {
           font-size: 22px;
-          font-weight: 700;
+          font-weight: 600;
           line-height: 1.5em;
           margin-bottom: 15px;
           padding-top: 12px;
@@ -216,21 +251,21 @@ $border-bottom-width: 1px;
         }
         h3 {
           font-size: 20px;
-          font-weight: 700;
+          font-weight: 600;
           line-height: 1.5em;
           padding-top: 12px;
           padding-bottom: 4px;
         }
         h4 {
           font-size: 18px;
-          font-weight: 700;
+          font-weight: 600;
           line-height: 1.5em;
           padding-top: 12px;
           padding-bottom: 4px;
         }
         h5 {
           font-size: 16px;
-          font-weight: 700;
+          font-weight: 600;
           line-height: 1.5em;
           margin-bottom: 15px;
           padding-top: 12px;
@@ -238,7 +273,7 @@ $border-bottom-width: 1px;
         }
         h6 {
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 600;
           line-height: 1.5em;
           margin-bottom: 15px;
           padding-top: 12px;
@@ -271,13 +306,13 @@ $border-bottom-width: 1px;
           display: flex;
           flex-direction: column;
           gap: 4px;
-          padding: 0 0 8px 0;
+          padding: 0;
 
           p {
             color: $text-color;
             margin: 0;
             padding: 0;
-            font-weight: 600;
+            font-weight: 500;
             line-height: 16px;
             font-size: 12px;
 
@@ -287,21 +322,16 @@ $border-bottom-width: 1px;
           h2 {
             margin: 0;
             color: $heading-color;
-            font-weight: 700;
-            line-height: 1.5em;
-            font-size: 24px;
+            font-weight: 600;
+            line-height: 30px;
+            font-size: 20px;
             padding: 0;
           }
         }
 
         p {
           padding: 0;
-          font-size: 15px;
-
-          &:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-          }
+          font-size: 14px;
         }
 
         a {
@@ -354,11 +384,14 @@ $border-bottom-width: 1px;
           margin-left: 10px;
 
           li {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 400;
-            line-height: 1.5em;
-            color: #475569;
-            margin-bottom: 4px;
+            line-height: 20px;
+            color: $paragraph-color;
+            margin: 0 0 4px 0;
+            &:last-child {
+              margin-bottom: 0;
+            }
           }
         }
 
@@ -388,7 +421,7 @@ $border-bottom-width: 1px;
         font-weight: 800;
 
         &::after {
-          content: '⌃';
+          content: "⌃";
           font-size: 20px;
           transform: rotateX(180deg);
           font-weight: 800;
