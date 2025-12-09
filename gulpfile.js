@@ -44,11 +44,13 @@ function handleScssBuild() {
 }
 
 function handleMinifyCSS() {
-	return handleScssBuild()
-		.pipe(gulp.src("dist/*.css"))
-		.pipe(rename('whats-new-rss.min.css'))
+	return gulp.src("src/scss/**/*.scss")
+		.pipe(sass().on('error', sass.logError))
+		.pipe(replace('@charset "UTF-8";', ''))
+		.pipe(gulp.dest('dist'))
 		.pipe(minifyCSS())
-		.pipe(gulp.dest('dist/'))
+		.pipe(rename('whats-new-rss.min.css'))
+		.pipe(gulp.dest('dist/'));
 }
 
 function handleUglifyJS() {
@@ -115,6 +117,11 @@ ${hookContent}
 			});
 		});
 	});
+});
+
+gulp.task('watch', () => {
+	gulp.watch("src/scss/**/*.scss", gulp.series('sass:minify'));
+	gulp.watch(["dist/whats-new-rss.js", "dist/whats-new-rss.min.css"], gulp.series('generate-react-files'));
 });
 
 gulp.task('default', gulp.series('generate-react-files'));

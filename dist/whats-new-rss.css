@@ -2,11 +2,12 @@
  * === Whats New RSS ===
  *
  * Version: 1.1.0
- * Generated on: 17th September, 2025
+ * Generated on: 25th November, 2025
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
 
+@import url("https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap");
 .whats-new-rss-is-active {
   overflow: hidden;
 }
@@ -70,13 +71,18 @@
   width: 100%;
   z-index: 99999;
   transition: visibility 0.3s ease-in-out;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Figtree", sans-serif;
   height: 100vh;
   font-size: 15px;
   font-weight: 400;
   line-height: 20px;
-  color: #475569;
+  color: #374151;
   margin-bottom: 5px;
+}
+.whats-new-rss-flyout *,
+.whats-new-rss-flyout ::after,
+.whats-new-rss-flyout ::before {
+  box-sizing: border-box;
 }
 .whats-new-rss-flyout.hidden,
 .whats-new-rss-flyout .lightbox-trigger {
@@ -93,10 +99,10 @@
   height: 25px;
 }
 .whats-new-rss-flyout p {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
-  line-height: 1.5em;
-  color: #475569;
+  line-height: 20px;
+  color: #374151;
   margin-bottom: 15px;
 }
 .whats-new-rss-flyout p a {
@@ -149,15 +155,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 24px !important;
-  border-bottom: 1px solid #ccc;
+  padding: 16px !important;
+  border-bottom: 1px solid #e5e7eb;
+}
+.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header [id^=whats-new-rss-flyout-close-] {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header button {
   border: none;
   background: none;
   font-size: 30px;
   cursor: pointer;
-  color: #94a3b8;
+  color: #111827;
   padding: 0;
   margin: 0;
   box-shadow: none;
@@ -165,20 +178,21 @@
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header .whats-new-rss-flyout-inner-header__title-icon-wrapper {
   display: flex;
   gap: 10px;
+  padding: 0 4px;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-header .whats-new-rss-flyout-inner-header__title-icon-wrapper h3 {
   margin: 0;
   padding: 0;
-  color: #0f172a;
+  color: #111827;
   font-weight: 600;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 24px;
   margin-bottom: 0 !important;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-multi-feed-nav {
   display: flex;
   padding: 0 30px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #e5e7eb;
   gap: 2em;
   overflow: auto;
   white-space: nowrap;
@@ -217,14 +231,28 @@
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item {
   border-bottom: 1px solid #d8dfe9;
-  padding: 24px 24px;
-  color: #475569;
+  padding: 20px;
+  color: #374151;
   font-weight: 400;
   font-size: 14px;
   line-height: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+}
+.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item > :nth-child(n+1) {
+  margin: 8px 0 8px 0;
+}
+.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item > :first-child {
+  margin-top: 0;
+}
+.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item > :nth-child(n+1):is(ul) {
+  margin-top: 0;
+}
+.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item > :nth-child(n+1):is(div):has(figure) {
+  margin-bottom: 12px;
+}
+.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item figure, .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item img {
+  margin: 0 !important;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item .wp-smiley {
   display: inline-block;
@@ -237,7 +265,7 @@
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h2 {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5em;
   margin-bottom: 15px;
   padding-top: 12px;
@@ -245,21 +273,21 @@
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h3 {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5em;
   padding-top: 12px;
   padding-bottom: 4px;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h4 {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5em;
   padding-top: 12px;
   padding-bottom: 4px;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h5 {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5em;
   margin-bottom: 15px;
   padding-top: 12px;
@@ -267,7 +295,7 @@
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item h6 {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5em;
   margin-bottom: 15px;
   padding-top: 12px;
@@ -296,32 +324,28 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 0 0 8px 0;
+  padding: 0;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item .rss-content-header p {
-  color: #94a3b8;
+  color: #6B7280;
   margin: 0;
   padding: 0;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 16px;
   font-size: 12px;
   margin-bottom: 0 !important;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item .rss-content-header h2 {
   margin: 0;
-  color: #0f172a;
-  font-weight: 700;
-  line-height: 1.5em;
-  font-size: 24px;
+  color: #111827;
+  font-weight: 600;
+  line-height: 30px;
+  font-size: 20px;
   padding: 0;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item p {
   padding: 0;
-  font-size: 15px;
-}
-.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item p:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
+  font-size: 14px;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item a {
   color: #1170ff;
@@ -367,11 +391,15 @@
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ul li,
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ol li {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
-  line-height: 1.5em;
-  color: #475569;
-  margin-bottom: 4px;
+  line-height: 20px;
+  color: #374151;
+  margin: 0 0 4px 0;
+}
+.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ul li:last-child,
+.whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ol li:last-child {
+  margin-bottom: 0;
 }
 .whats-new-rss-flyout .whats-new-rss-flyout-contents .whats-new-rss-flyout-inner-content .whats-new-rss-flyout-inner-content-item ul {
   list-style-type: disc;
