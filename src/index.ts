@@ -1,11 +1,19 @@
 type ConstructorArgs = {
 	rssFeedURL: string | Array<{
+		/**
+		 * Unique key for the feed. Must only contain letters, numbers, hyphens, and underscores.
+		 * Must not be populated from user input or untrusted sources.
+		 */
 		key: string,
 		label: string,
 		url: string,
 	}>,
 	selector: string,
 	uniqueKey: string,
+	/**
+	 * Raw HTML string. Must be trusted, developer-provided content only.
+	 * Do NOT populate from user input or external data sources.
+	 */
 	loaderIcon?: string,
 	viewAll?: {
 		link: string,
@@ -13,8 +21,20 @@ type ConstructorArgs = {
 	},
 	triggerButton?: {
 		label?: string,
+		/**
+		 * Raw HTML string. Must be trusted, developer-provided content only.
+		 * Do NOT populate from user input or external data sources.
+		 */
 		icon?: string,
+		/**
+		 * Raw HTML string. Must be trusted, developer-provided content only.
+		 * Do NOT populate from user input or external data sources.
+		 */
 		beforeBtn?: string,
+		/**
+		 * Raw HTML string. Must be trusted, developer-provided content only.
+		 * Do NOT populate from user input or external data sources.
+		 */
 		afterBtn?: string,
 		className?: string,
 		onClick?: ((RSS: WhatsNewRSS) => void),
@@ -38,6 +58,10 @@ type ConstructorArgs = {
 			}
 		},
 		className?: string,
+		/**
+		 * Raw HTML string. Must be trusted, developer-provided content only.
+		 * Do NOT populate from user input or external data sources.
+		 */
 		closeBtnIcon?: string,
 		closeOnEsc?: boolean,
 		closeOnOverlayClick?: boolean,
@@ -47,6 +71,66 @@ type ConstructorArgs = {
 		formatDate?: null | ((date: Date) => string),
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Security helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * HTML-escapes a plain-text string so it is safe to interpolate into innerHTML.
+ */
+function escapeHTML(str: string): string {
+	const div = document.createElement('div');
+	div.appendChild(document.createTextNode(str));
+	return div.innerHTML;
+}
+
+/**
+ * Returns true only for http: and https: URLs.
+ * Rejects javascript:, data:, and any other protocol.
+ */
+function isSafeURL(url: string): boolean {
+	try {
+		const parsed = new URL(url);
+		return ['https:', 'http:'].includes(parsed.protocol);
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Sanitizes an HTML string by removing dangerous elements and event-handler
+ * attributes. Keeps safe formatting markup (p, strong, a, img, etc.) while
+ * stripping scripts, iframes, and on* attributes.
+ */
+function sanitizeHTML(html: string): string {
+	const doc = new DOMParser().parseFromString(html, 'text/html');
+
+	// Remove elements that can execute code or make unexpected requests.
+	const dangerousTags = [
+		'script', 'style', 'iframe', 'object', 'embed',
+		'form', 'input', 'textarea', 'select', 'meta', 'base',
+	];
+	dangerousTags.forEach(tag => {
+		doc.querySelectorAll(tag).forEach(el => el.remove());
+	});
+
+	// Remove event-handler attributes and unsafe URL attributes.
+	doc.querySelectorAll('*').forEach(el => {
+		Array.from(el.attributes).forEach(attr => {
+			if (attr.name.startsWith('on')) {
+				el.removeAttribute(attr.name);
+			}
+			if (['href', 'src', 'action', 'formaction'].includes(attr.name) && !isSafeURL(attr.value)) {
+				el.removeAttribute(attr.name);
+			}
+		});
+	});
+
+	return doc.body.innerHTML;
+}
+
+// ---------------------------------------------------------------------------
 
 const WhatsNewRSSDefaultArgs: ConstructorArgs = {
 	rssFeedURL: '',
@@ -129,6 +213,11 @@ class WhatsNewRSS {
 	private RSS_View_Instance: WhatsNewRSSView;
 
 	/**
+	 * Per-instance cache utility (fixes BUG-03 singleton issue).
+	 */
+	private cacheUtils: WhatsNewRSSCacheUtils;
+
+	/**
 	 * UnixTime stamp of the last seen or read post.
 	 */
 	private lastPostUnixTime = 0;
@@ -165,6 +254,12 @@ class WhatsNewRSS {
 	} = {};
 
 	/**
+	 * Guard to ensure the scrollbar-compensation CSS rule is inserted only once
+	 * per instance (fixes BUG-02 unbounded insertRule accumulation).
+	 */
+	private _scrollbarRuleInserted = false;
+
+	/**
 	 * Initialize our class.
 	 *
 	 * @param {ConstructorArgs} args
@@ -183,7 +278,9 @@ class WhatsNewRSS {
 
 		this.setRSSFeedURLs();
 
-		WhatsNewRSSCacheUtils.setInstanceID(this.getID());
+		// BUG-03: Each instance owns its own cache utility keyed to its own ID.
+		this.cacheUtils = new WhatsNewRSSCacheUtils(this.getID());
+
 		this.RSS_Fetch_Instance = new WhatsNewRSSFetch(this);
 		this.RSS_View_Instance = new WhatsNewRSSView(this);
 
@@ -211,8 +308,10 @@ class WhatsNewRSS {
 								throw new Error(`The parameter "key" is required for "${requiredArg}" parameter in multi-feed mode.`);
 							}
 
-							if (rssFeedURL.key.includes(' ')) {
-								throw new Error(`The parameter "key" cannot have spaces for "${requiredArg}" parameter in multi-feed mode. Ref Key: "${rssFeedURL.key}"`);
+							// ADD-04: Restrict feed.key to safe characters for use in CSS
+							// selectors and HTML data attributes.
+							if (!/^[a-zA-Z0-9_-]+$/.test(rssFeedURL.key)) {
+								throw new Error(`The parameter "key" may only contain letters, numbers, hyphens, and underscores for "${requiredArg}" parameter in multi-feed mode. Ref Key: "${rssFeedURL.key}"`);
 							}
 						});
 					}
@@ -341,6 +440,15 @@ class WhatsNewRSS {
 	}
 
 	/**
+	 * Returns the per-instance cache utility.
+	 *
+	 * @returns {WhatsNewRSSCacheUtils}
+	 */
+	public getCacheUtils(): WhatsNewRSSCacheUtils {
+		return this.cacheUtils;
+	}
+
+	/**
 	 * Checks and counts new notification for the notification badge.
 	 */
 	private async setNotificationsCount() {
@@ -351,7 +459,7 @@ class WhatsNewRSS {
 				if (('function' === typeof this.getArgs().notification.getLastPostUnixTime)) {
 					lastPostUnixTime = await this.getArgs().notification.getLastPostUnixTime(key, this);
 				} else {
-					lastPostUnixTime = WhatsNewRSSCacheUtils.getLastPostUnixTime(key);
+					lastPostUnixTime = this.cacheUtils.getLastPostUnixTime(key);
 				}
 
 				if (this.isMultiFeedRSS()) {
@@ -442,6 +550,8 @@ class WhatsNewRSS {
 
 						const isNewPost = !!lastPostUnixTime ? item.date > lastPostUnixTime : false;
 
+						// VULN-01 fix: item.title is HTML-escaped at ingestion time.
+						// VULN-03 fix: item.postLink is validated at ingestion time.
 						const contentTitle = this.getArgs().flyout.innerContent.titleLink ?
 							`<a href="${item.postLink}" target="_blank">
 								<h2>${item.title}</h2>
@@ -458,10 +568,13 @@ class WhatsNewRSS {
 								${this.RSS_View_Instance.listChildrenPosts(item.children)}
 							`;
 
-						const additionalClasses = this.getArgs().flyout.innerContent.additionalClasses;
+						// BUG-01 fix: clone the array so we never mutate the shared config
+						// object; also fixes the template literal misquote below.
+						const additionalClasses = [...this.getArgs().flyout.innerContent.additionalClasses];
 
 						if (!!key) {
-							additionalClasses.push('`inner-content-item-feed-key-${key}`');
+							// BUG-01 fix: was single-quoted string — now a proper template literal.
+							additionalClasses.push(`inner-content-item-feed-key-${key}`);
 						}
 
 						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
@@ -472,11 +585,12 @@ class WhatsNewRSS {
 					});
 
 					if (this.getArgs().viewAll.link) {
-						// If we have link provided for the view all button then append a view all button at the end of the contents.
+						// ADD-01 fix: validate the URL protocol and escape the label.
+						const safeViewAllLink = isSafeURL(this.getArgs().viewAll.link)
+							? this.getArgs().viewAll.link
+							: '#';
 						flyoutInner.innerHTML += this.RSS_View_Instance.innerContentWrapper(
-							`
-							<a href="${this.getArgs().viewAll.link}" class="button view-all">${this.getArgs().viewAll.label}</a>
-							`
+							`<a href="${safeViewAllLink}" class="button view-all">${escapeHTML(this.getArgs().viewAll.label)}</a>`
 						)
 					}
 
@@ -498,7 +612,7 @@ class WhatsNewRSS {
 							if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
 								this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, key);
 							} else {
-								WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
+								this.cacheUtils.setLastPostUnixTime(currentPostUnixTime, key);
 							}
 						}
 					}
@@ -526,16 +640,18 @@ class WhatsNewRSS {
 			flyout.classList.add('open');
 			document.body.classList.add('whats-new-rss-is-active');
 
-			// Fix glitch issue that happens when opening drawers.
-            if (!!scrollBarWidth) {
-                const styleSheet = document.getElementById('whats-new-rss-styles') as HTMLStyleElement;
-                if (styleSheet?.sheet) {
-                    styleSheet.sheet.insertRule(
-                    `.whats-new-rss-is-active { background-color: yellow; padding-right: ${scrollBarWidth}px; }`,
-                    styleSheet.sheet.cssRules.length
-                    );
-                }
-            }
+			// BUG-02 fix: insert the rule only once per instance, and remove the
+			// accidental debug `background-color: yellow` that was left in.
+			if (!!scrollBarWidth && !this._scrollbarRuleInserted) {
+				const styleSheet = document.getElementById('whats-new-rss-styles') as HTMLStyleElement;
+				if (styleSheet?.sheet) {
+					styleSheet.sheet.insertRule(
+						`.whats-new-rss-is-active { padding-right: ${scrollBarWidth}px; }`,
+						styleSheet.sheet.cssRules.length
+					);
+					this._scrollbarRuleInserted = true;
+				}
+			}
 
 			this.getArgs().flyout.onOpen(this);
 
@@ -568,7 +684,7 @@ class WhatsNewRSS {
 								if ('function' === typeof this.getArgs().notification.setLastPostUnixTime) {
 									this.getArgs().notification.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
 								} else {
-									WhatsNewRSSCacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
+									this.cacheUtils.setLastPostUnixTime(currentPostUnixTime, currentFeedKey);
 								}
 							}
 
@@ -581,7 +697,9 @@ class WhatsNewRSS {
 						navBtn.classList.remove('selected');
 
 						const feedKey = navBtn.dataset.feedKey;
-						const innerContentClassName = `.inner-content-item-feed-key-${feedKey}`;
+						// ADD-04 fix: feed.key is now validated to safe chars in validateArgs,
+						// but also escape via CSS.escape() as a defence-in-depth measure.
+						const innerContentClassName = `.inner-content-item-feed-key-${CSS.escape(feedKey)}`;
 
 						document.querySelectorAll(innerContentClassName).forEach(item => {
 							if (currentFeedKey !== feedKey) {
@@ -643,30 +761,32 @@ class WhatsNewRSS {
 	}
 }
 
+/**
+ * BUG-03 fix: converted from a static singleton to an instance-based class.
+ * Each WhatsNewRSS instance creates its own WhatsNewRSSCacheUtils with its
+ * own instanceID, preventing cache key collisions across multiple instances.
+ */
 class WhatsNewRSSCacheUtils {
 
-	static instanceID: string;
+	private instanceID: string;
 
-	static keys = {
+	private keys = {
 		SESSION_DATA_EXPIRY: "whats-new-cache-expiry",
 		LAST_LATEST_POST: "whats-new-last-unixtime",
 		SESSION: "whats-new-cache"
 	}
 
-	static setInstanceID(instanceID: string) {
-		if (!this.instanceID) {
-			this.instanceID = instanceID;
-		}
+	constructor(instanceID: string) {
+		this.instanceID = instanceID;
 	}
 
-	private static prefixer(key: string, prefixKey = '') {
-		if (!this.instanceID) {
-			throw new Error('Instance ID not set.');
-		}
-		return !!prefixKey ? `${this.keys[key]}-${this.instanceID}-${prefixKey}` : `${this.keys[key]}-${this.instanceID}`;
+	private prefixer(key: string, prefixKey = '') {
+		return !!prefixKey
+			? `${this.keys[key]}-${this.instanceID}-${prefixKey}`
+			: `${this.keys[key]}-${this.instanceID}`;
 	}
 
-	private static _setDataExpiry(prefixKey = '') {
+	private _setDataExpiry(prefixKey = '') {
 
 		const expiryInSeconds = 86400; // Defaults to 24 hours.
 
@@ -675,7 +795,7 @@ class WhatsNewRSSCacheUtils {
 		sessionStorage.setItem(this.prefixer('SESSION_DATA_EXPIRY', prefixKey), JSON.stringify(expiry));
 	}
 
-	private static _isDataExpired(prefixKey = '') {
+	private _isDataExpired(prefixKey = '') {
 		const key = this.prefixer('SESSION_DATA_EXPIRY', prefixKey);
 		const value = window.sessionStorage.getItem(key);
 
@@ -694,12 +814,12 @@ class WhatsNewRSSCacheUtils {
 		return false;
 	}
 
-	static setSessionData(data: string, prefixKey = '') {
+	setSessionData(data: string, prefixKey = '') {
 		this._setDataExpiry(prefixKey);
 		return window.sessionStorage.setItem(this.prefixer('SESSION', prefixKey), data);
 	}
 
-	static getSessionData(prefixKey = '') {
+	getSessionData(prefixKey = '') {
 		if (!this._isDataExpired(prefixKey)) {
 			return window.sessionStorage.getItem(this.prefixer('SESSION', prefixKey));
 		}
@@ -707,11 +827,11 @@ class WhatsNewRSSCacheUtils {
 		return '{}';
 	}
 
-	static setLastPostUnixTime(unixTime: number, prefixKey = '') {
+	setLastPostUnixTime(unixTime: number, prefixKey = '') {
 		return window.localStorage.setItem(this.prefixer('LAST_LATEST_POST', prefixKey), unixTime.toString());
 	}
 
-	static getLastPostUnixTime(prefixKey = '') {
+	getLastPostUnixTime(prefixKey = '') {
 		return +window.localStorage.getItem(this.prefixer('LAST_LATEST_POST', prefixKey));
 	}
 }
@@ -738,7 +858,7 @@ class WhatsNewRSSFetch {
 		this.RSS = RSS;
 
 		this.RSS.getRSSFeedURLs().forEach((feed) => {
-			const sessionCache = JSON.parse(WhatsNewRSSCacheUtils.getSessionData(feed.key));
+			const sessionCache = JSON.parse(this.RSS.getCacheUtils().getSessionData(feed.key));
 
 			if (sessionCache && sessionCache.length) {
 				this.data[feed.key] = sessionCache;
@@ -760,7 +880,7 @@ class WhatsNewRSSFetch {
 
 			/**
 			 * There was an issue with the xml content parse
-			 * And during parse we were getting "<parsererror>" because of the ‘raquo’ entity.
+			 * And during parse we were getting "<parsererror>" because of the 'raquo' entity.
 			 */
 			data = data.replace(/&raquo;/g, '&amp;raquo;');
 
@@ -777,15 +897,32 @@ class WhatsNewRSSFetch {
 				const content = contentEncoded ? contentEncoded.textContent : '';
 				const rssDate = item.querySelector('pubDate').innerHTML;
 
+				// ADD-03 fix: wrap JSON.parse in try/catch so a malformed <children>
+				// element does not abort rendering of all subsequent feed items.
+				let children: object = {};
+				try {
+					children = JSON.parse(item.querySelector('children')?.innerHTML || '{}');
+				} catch {
+					console.warn('WNR: Failed to parse <children> element JSON — skipping children for this item.');
+				}
+
 				this.data[feed.key].push({
-					title: title,
+					// VULN-01 fix: HTML-escape the title so it is safe for innerHTML injection.
+					title: escapeHTML(title),
 					date: !!rssDate ? +new Date(rssDate) : null,
-					postLink: link,
-					description: content.replace(/<a\b((?:(?!target=)[^>])*)>/g, '<a$1 target="_blank">').replace(/<p>\s*<\/p>/g, ''),
-					children: JSON.parse(item.querySelector('children')?.innerHTML || '{}')
+					// VULN-03 fix: only allow http/https URLs; fall back to '#' for others.
+					postLink: isSafeURL(link) ? link : '#',
+					// VULN-02 fix: sanitize the HTML content to remove dangerous elements
+					// and event-handler attributes while preserving safe formatting markup.
+					description: sanitizeHTML(
+						content
+							.replace(/<a\b((?:(?!target=)[^>])*)>/g, '<a$1 target="_blank">')
+							.replace(/<p>\s*<\/p>/g, '')
+					),
+					children,
 				});
 			});
-			WhatsNewRSSCacheUtils.setSessionData(JSON.stringify(this.data[feed.key]), feed.key);
+			this.RSS.getCacheUtils().setSessionData(JSON.stringify(this.data[feed.key]), feed.key);
 		});
 
 		await Promise.all(fetchPromises);
@@ -1012,8 +1149,11 @@ class WhatsNewRSSView {
 			return content;
 		}
 
+		// VULN-03 fix: readMoreLink (item.postLink) is already validated at ingestion
+		// time, so it is safe to use here. escapeHTML() is applied to the label in
+		// case it contains special characters.
 		if (!!readMoreLink && !!readMore?.label) {
-			return `<p>${rawExcerpt} <a href="${readMoreLink}" target="_blank" class="${readMore.className}">${readMore.label}</a></p>`;
+			return `<p>${rawExcerpt} <a href="${readMoreLink}" target="_blank" class="${readMore.className}">${escapeHTML(readMore.label)}</a></p>`;
 		}
 
 		return `<p>${rawExcerpt}</p>`;
@@ -1035,9 +1175,11 @@ class WhatsNewRSSView {
 			const itemDiv = document.createElement('div');
 			itemDiv.classList.add('sub-version-item');
 
+			// VULN-04 fix: HTML-escape post_title before injecting into innerHTML.
+			// post_content is safe: it passes through DOMParser + .textContent.
 			itemDiv.innerHTML = `
 				<div class="sub-version-header">
-					<h4 class="sub-version-title">${child.post_title}</h4>
+					<h4 class="sub-version-title">${escapeHTML(child.post_title)}</h4>
 					<span class="sub-version-date">${this.formatDate(new Date(child.post_date))}</span>
 				</div>
 				<div class="sub-version-content">${postContentDoc.documentElement.textContent}</div>

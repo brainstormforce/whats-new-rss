@@ -2,18 +2,26 @@
  * === Whats New RSS ===
  *
  * Version: 1.1.0
- * Generated on: 17th September, 2025
+ * Generated on: 2nd March, 2026
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
 type ConstructorArgs = {
     rssFeedURL: string | Array<{
+        /**
+         * Unique key for the feed. Must only contain letters, numbers, hyphens, and underscores.
+         * Must not be populated from user input or untrusted sources.
+         */
         key: string;
         label: string;
         url: string;
     }>;
     selector: string;
     uniqueKey: string;
+    /**
+     * Raw HTML string. Must be trusted, developer-provided content only.
+     * Do NOT populate from user input or external data sources.
+     */
     loaderIcon?: string;
     viewAll?: {
         link: string;
@@ -21,8 +29,20 @@ type ConstructorArgs = {
     };
     triggerButton?: {
         label?: string;
+        /**
+         * Raw HTML string. Must be trusted, developer-provided content only.
+         * Do NOT populate from user input or external data sources.
+         */
         icon?: string;
+        /**
+         * Raw HTML string. Must be trusted, developer-provided content only.
+         * Do NOT populate from user input or external data sources.
+         */
         beforeBtn?: string;
+        /**
+         * Raw HTML string. Must be trusted, developer-provided content only.
+         * Do NOT populate from user input or external data sources.
+         */
         afterBtn?: string;
         className?: string;
         onClick?: ((RSS: WhatsNewRSS) => void);
@@ -46,6 +66,10 @@ type ConstructorArgs = {
             };
         };
         className?: string;
+        /**
+         * Raw HTML string. Must be trusted, developer-provided content only.
+         * Do NOT populate from user input or external data sources.
+         */
         closeBtnIcon?: string;
         closeOnEsc?: boolean;
         closeOnOverlayClick?: boolean;
@@ -55,6 +79,21 @@ type ConstructorArgs = {
         formatDate?: null | ((date: Date) => string);
     };
 };
+/**
+ * HTML-escapes a plain-text string so it is safe to interpolate into innerHTML.
+ */
+declare function escapeHTML(str: string): string;
+/**
+ * Returns true only for http: and https: URLs.
+ * Rejects javascript:, data:, and any other protocol.
+ */
+declare function isSafeURL(url: string): boolean;
+/**
+ * Sanitizes an HTML string by removing dangerous elements and event-handler
+ * attributes. Keeps safe formatting markup (p, strong, a, img, etc.) while
+ * stripping scripts, iframes, and on* attributes.
+ */
+declare function sanitizeHTML(html: string): string;
 declare const WhatsNewRSSDefaultArgs: ConstructorArgs;
 declare class WhatsNewRSS {
     private ID;
@@ -75,6 +114,10 @@ declare class WhatsNewRSS {
      * RSS View instance.
      */
     private RSS_View_Instance;
+    /**
+     * Per-instance cache utility (fixes BUG-03 singleton issue).
+     */
+    private cacheUtils;
     /**
      * UnixTime stamp of the last seen or read post.
      */
@@ -99,6 +142,11 @@ declare class WhatsNewRSS {
      * Check if has new feeds in multi feeds mode.
      */
     private multiHasNewFeeds;
+    /**
+     * Guard to ensure the scrollbar-compensation CSS rule is inserted only once
+     * per instance (fixes BUG-02 unbounded insertRule accumulation).
+     */
+    private _scrollbarRuleInserted;
     /**
      * Initialize our class.
      *
@@ -156,6 +204,12 @@ declare class WhatsNewRSS {
      */
     getID(): string;
     /**
+     * Returns the per-instance cache utility.
+     *
+     * @returns {WhatsNewRSSCacheUtils}
+     */
+    getCacheUtils(): WhatsNewRSSCacheUtils;
+    /**
      * Checks and counts new notification for the notification badge.
      */
     private setNotificationsCount;
@@ -170,21 +224,22 @@ declare class WhatsNewRSS {
      */
     private setTriggers;
 }
+/**
+ * BUG-03 fix: converted from a static singleton to an instance-based class.
+ * Each WhatsNewRSS instance creates its own WhatsNewRSSCacheUtils with its
+ * own instanceID, preventing cache key collisions across multiple instances.
+ */
 declare class WhatsNewRSSCacheUtils {
-    static instanceID: string;
-    static keys: {
-        SESSION_DATA_EXPIRY: string;
-        LAST_LATEST_POST: string;
-        SESSION: string;
-    };
-    static setInstanceID(instanceID: string): void;
-    private static prefixer;
-    private static _setDataExpiry;
-    private static _isDataExpired;
-    static setSessionData(data: string, prefixKey?: string): void;
-    static getSessionData(prefixKey?: string): string;
-    static setLastPostUnixTime(unixTime: number, prefixKey?: string): void;
-    static getLastPostUnixTime(prefixKey?: string): number;
+    private instanceID;
+    private keys;
+    constructor(instanceID: string);
+    private prefixer;
+    private _setDataExpiry;
+    private _isDataExpired;
+    setSessionData(data: string, prefixKey?: string): void;
+    getSessionData(prefixKey?: string): string;
+    setLastPostUnixTime(unixTime: number, prefixKey?: string): void;
+    getLastPostUnixTime(prefixKey?: string): number;
 }
 /**
  * Class for handling the data fetching.
