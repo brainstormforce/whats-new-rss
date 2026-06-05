@@ -2,7 +2,7 @@
  * === Whats New RSS ===
  *
  * Version: 1.1.0
- * Generated on: 25th November, 2025
+ * Generated on: 5th June, 2026
  * Documentation: https://github.com/brainstormforce/whats-new-rss/blob/master/README.md
  */
 
@@ -299,7 +299,11 @@ class WhatsNewRSS {
                 .then((res) => {
                 flyoutInner.innerHTML = '';
                 const data = res[key];
-                if (!data.length) {
+                if (!data || !data.length) {
+                    // Clear the loader so the flyout does not show an infinite loading spinner.
+                    this.RSS_View_Instance.setIsLoading(false);
+                    flyout.classList.add('ready');
+                    this.getArgs().flyout.onReady(this);
                     return;
                 }
                 const currentPostUnixTime = +data[0].date;
@@ -352,7 +356,12 @@ class WhatsNewRSS {
                     }
                 }
             })
-                .catch(console.error);
+                .catch((error) => {
+                console.error(error);
+                // Clear the loader so the flyout does not show an infinite loading spinner.
+                this.RSS_View_Instance.setIsLoading(false);
+                flyout.classList.add('ready');
+            });
         };
         /**
          * Open flyout on trigger button click.
@@ -528,10 +537,16 @@ class WhatsNewRSSFetch {
     }
     fetchData() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (Object.keys(this.data).length) {
+            const feeds = this.RSS.getRSSFeedURLs();
+            /**
+             * Return the in-memory cache only if every feed has fetched items,
+             * so a failed or empty fetch is retried on the next call instead of
+             * staying cached as empty forever.
+             */
+            if (feeds.length && feeds.every((feed) => { var _a; return !!((_a = this.data[feed.key]) === null || _a === void 0 ? void 0 : _a.length); })) {
                 return this.data;
             }
-            const fetchPromises = this.RSS.getRSSFeedURLs().map((feed) => __awaiter(this, void 0, void 0, function* () {
+            const fetchPromises = feeds.map((feed) => __awaiter(this, void 0, void 0, function* () {
                 this.data[feed.key] = [];
                 const res = yield fetch(feed.url);
                 let data = yield res.text();
@@ -540,6 +555,13 @@ class WhatsNewRSSFetch {
                  * And during parse we were getting "<parsererror>" because of the ‘raquo’ entity.
                  */
                 data = data.replace(/&raquo;/g, '&amp;raquo;');
+                /**
+                 * Trim the response to remove any stray output around the XML, eg: a leading
+                 * newline or whitespace emitted by the feed server (a blank line outside the
+                 * PHP tags, a UTF-8 BOM etc). Without this, the XML parse fails with
+                 * "XML declaration allowed only at the start of the document".
+                 */
+                data = data.trim();
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(data, 'text/xml');
                 const items = xmlDoc.querySelectorAll('item');

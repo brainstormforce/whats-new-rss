@@ -431,7 +431,11 @@ class WhatsNewRSS {
 
 					const data = res[key];
 
-					if (!data.length) {
+					if (!data || !data.length) {
+						// Clear the loader so the flyout does not show an infinite loading spinner.
+						this.RSS_View_Instance.setIsLoading(false);
+						flyout.classList.add('ready');
+						this.getArgs().flyout.onReady(this);
 						return;
 					}
 
@@ -504,7 +508,13 @@ class WhatsNewRSS {
 					}
 
 				})
-				.catch(console.error);
+				.catch((error) => {
+					console.error(error);
+
+					// Clear the loader so the flyout does not show an infinite loading spinner.
+					this.RSS_View_Instance.setIsLoading(false);
+					flyout.classList.add('ready');
+				});
 
 		}
 
@@ -748,11 +758,18 @@ class WhatsNewRSSFetch {
 
 	public async fetchData() {
 
-		if (Object.keys(this.data).length) {
+		const feeds = this.RSS.getRSSFeedURLs();
+
+		/**
+		 * Return the in-memory cache only if every feed has fetched items,
+		 * so a failed or empty fetch is retried on the next call instead of
+		 * staying cached as empty forever.
+		 */
+		if (feeds.length && feeds.every((feed) => !!this.data[feed.key]?.length)) {
 			return this.data;
 		}
 
-		const fetchPromises = this.RSS.getRSSFeedURLs().map(async (feed) => {
+		const fetchPromises = feeds.map(async (feed) => {
 			this.data[feed.key] = [];
 
 			const res = await fetch(feed.url);
@@ -763,6 +780,14 @@ class WhatsNewRSSFetch {
 			 * And during parse we were getting "<parsererror>" because of the ‘raquo’ entity.
 			 */
 			data = data.replace(/&raquo;/g, '&amp;raquo;');
+
+			/**
+			 * Trim the response to remove any stray output around the XML, eg: a leading
+			 * newline or whitespace emitted by the feed server (a blank line outside the
+			 * PHP tags, a UTF-8 BOM etc). Without this, the XML parse fails with
+			 * "XML declaration allowed only at the start of the document".
+			 */
+			data = data.trim();
 
 			const parser = new DOMParser();
 			const xmlDoc = parser.parseFromString(data, 'text/xml');
